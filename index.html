@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SupplySync</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F7F9FB;
+    --surface: #ffffff;
+    --surface2: #EEF2F7;
+    --border: #DDE3ED;
+    --border-strong: #C2CBDA;
+    --primary: #1E3A5F;
+    --primary-dark: #162d4a;
+    --primary-light: #E8EEF6;
+    --teal: #2CB1A6;
+    --teal-dark: #229990;
+    --teal-light: #E6F7F6;
+    --text: #1F2933;
+    --text-secondary: #6B7280;
+    --muted: #9CA3AF;
+    --success: #22C55E;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+    --success-bg: rgba(34,197,94,0.09);
+    --success-border: rgba(34,197,94,0.24);
+    --danger-bg: rgba(239,68,68,0.08);
+    --danger-border: rgba(239,68,68,0.22);
+    --warning-bg: rgba(245,158,11,0.08);
+    --warning-border: rgba(245,158,11,0.22);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+    --display: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 3px rgba(30,58,95,0.07), 0 1px 2px rgba(30,58,95,0.04);
+    --shadow: 0 4px 16px rgba(30,58,95,0.09), 0 1px 4px rgba(30,58,95,0.05);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; display: flex; -webkit-font-smoothing: antialiased; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 240px; min-height: 100vh; background: var(--primary);
+    border-right: none; display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; z-index: 100;
+  }
+  .logo {
+    padding: 28px 22px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-mark {
+    width: 38px; height: 38px; border-radius: 9px;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .logo-text {
+    display: flex; flex-direction: column; line-height: 1;
+  }
+  .logo-name {
+    font-family: var(--display); font-weight: 700; font-size: 1.05rem;
+    letter-spacing: -0.03em; color: #fff;
+  }
+  .logo-tagline {
+    font-size: 0.62rem; color: rgba(255,255,255,0.45); font-weight: 500;
+    letter-spacing: 0.05em; text-transform: uppercase; margin-top: 3px;
+  }
+  .nav { padding: 14px 12px; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+  .nav-section-label {
+    font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.35);
+    letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 10px 5px; margin-top: 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+    border-radius: var(--radius-sm); cursor: pointer; font-size: 0.875rem; font-weight: 500;
+    color: rgba(255,255,255,0.6); transition: all 0.12s ease;
+    border: none; background: transparent;
+  }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+  .nav-item.active { color: #fff; background: rgba(255,255,255,0.12); font-weight: 600; }
+  .nav-item.active .nav-icon-wrap { background: var(--teal); }
+  .nav-icon-wrap {
+    width: 28px; height: 28px; border-radius: 7px; background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background 0.12s;
+  }
+  .nav-icon-wrap svg { width: 15px; height: 15px; stroke: rgba(255,255,255,0.75); fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-item.active .nav-icon-wrap svg { stroke: #fff; }
+  .sidebar-footer {
+    padding: 16px 22px; border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.72rem; color: rgba(255,255,255,0.35); font-family: var(--mono);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sidebar-footer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+  /* MAIN */
+  .main { margin-left: 240px; flex: 1; padding: 36px 40px; min-height: 100vh; max-width: calc(100vw - 240px); }
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.18s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-family: var(--display); font-weight: 700; font-size: 1.75rem; letter-spacing: -0.04em; color: var(--text); margin-bottom: 3px; }
+  .page-sub { color: var(--muted); font-size: 0.875rem; font-weight: 400; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-title {
+    font-size: 0.72rem; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 16px;
+  }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .col-span-2 { grid-column: span 2; }
+
+  /* STAT CARDS */
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-sm);
+  }
+  .stat-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; margin-bottom: 10px; }
+  .stat-value { font-family: var(--display); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.05em; color: var(--text); line-height: 1; }
+  .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+  .stat-accent { color: var(--text); }
+  .stat-icon { font-size: 1.4rem; margin-bottom: 10px; }
+
+  /* VOLT HIGHLIGHT */
+  .volt-pill {
+    display: inline-block; background: var(--teal); color: #fff;
+    font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    letter-spacing: 0.02em; margin-top: 6px;
+  }
+
+  /* ALERTS */
+  .alert { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); font-size: 0.84rem; margin-bottom: 8px; }
+  .alert-warn { background: var(--warning-bg); border: 1px solid var(--warning-border); color: #92520a; }
+  .alert-danger { background: var(--danger-bg); border: 1px solid var(--danger-border); color: #b91c1c; }
+  .alert-success { background: var(--success-bg); border: 1px solid var(--success-border); color: #166534; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th {
+    text-align: left; padding: 10px 16px; font-size: 0.7rem; color: var(--text-secondary);
+    font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  th:first-child { border-radius: 6px 0 0 0; }
+  th:last-child { border-radius: 0 6px 0 0; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f0f4f9; }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.01em;
+  }
+  .badge-green { background: var(--success-bg); color: #166534; border: 1px solid var(--success-border); }
+  .badge-yellow { background: var(--warning-bg); color: #92520a; border: 1px solid var(--warning-border); }
+  .badge-red { background: var(--danger-bg); color: #b91c1c; border: 1px solid var(--danger-border); }
+  .badge-blue { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(30,58,95,0.18); }
+  .badge-teal { background: var(--teal-light); color: var(--teal-dark); border: 1px solid rgba(44,177,166,0.22); }
+  .badge-gray { background: var(--surface2); color: var(--text-secondary); border: 1px solid var(--border); }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+    border-radius: 980px; font-size: 0.875rem; font-weight: 600; cursor: pointer;
+    border: none; font-family: var(--sans); transition: all 0.12s ease;
+    letter-spacing: -0.01em; white-space: nowrap;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(30,58,95,0.28); }
+  .btn-teal { background: var(--teal); color: #fff; }
+  .btn-teal:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(44,177,166,0.35); }
+  .btn-volt { background: var(--teal); color: #fff; }
+  .btn-volt:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(44,177,166,0.35); }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); }
+  .btn-secondary:hover { background: var(--surface2); border-color: var(--primary); color: var(--primary); }
+  .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+  .btn-danger { background: var(--danger-bg); color: #b91c1c; border: 1px solid var(--danger-border); }
+  .btn-danger:hover { background: rgba(239,68,68,0.14); }
+  .btn-sm { padding: 5px 13px; font-size: 0.8rem; }
+  .btn-xs { padding: 3px 10px; font-size: 0.74rem; border-radius: 999px; }
+
+  /* INPUTS */
+  input, select {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); padding: 9px 13px;
+    font-size: 0.875rem; font-family: var(--sans); width: 100%;
+    transition: border-color 0.12s, box-shadow 0.12s; outline: none;
+    -webkit-appearance: none; appearance: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--teal); background: var(--surface);
+    box-shadow: 0 0 0 3px rgba(44,177,166,0.15);
+  }
+  input::placeholder { color: var(--muted); }
+  label {
+    display: block; font-size: 0.78rem; color: var(--text-secondary);
+    font-weight: 500; margin-bottom: 6px;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* PROGRESS BAR */
+  .progress-bar { height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* SECTION SPACING */
+  .section { margin-bottom: 18px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(31,41,51,0.35); backdrop-filter: blur(6px);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 28px; width: 480px; max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(30,58,95,0.18), 0 4px 16px rgba(30,58,95,0.1);
+    animation: modalIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  .modal-title { font-family: var(--display); font-weight: 700; font-size: 1.15rem; letter-spacing: -0.03em; margin-bottom: 20px; color: var(--text); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+
+  /* CHIP */
+  .chip { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+
+  /* ORDER ITEM */
+  .order-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); margin-bottom: 8px; transition: background 0.1s;
+  }
+  .order-item:hover { background: var(--primary-light); border-color: rgba(30,58,95,0.2); }
+  .order-item-name { font-weight: 600; font-size: 0.9rem; }
+  .order-item-detail { font-size: 0.75rem; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
+  .order-qty {
+    font-family: var(--display); font-weight: 700; font-size: 1.35rem;
+    letter-spacing: -0.04em; color: #fff; min-width: 52px; text-align: center;
+    background: var(--teal); border-radius: 8px; padding: 3px 12px;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px; background: var(--primary);
+    color: #fff; padding: 12px 20px; border-radius: 999px;
+    font-size: 0.84rem; font-weight: 500; z-index: 999; display: none;
+    animation: slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 8px 24px rgba(30,58,95,0.3);
+  }
+  @keyframes slideUp { from { opacity:0; transform:translateY(12px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+  /* STEP INDICATOR */
+  .steps { display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
+  .step { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+  .step.active { color: var(--primary); font-weight: 600; }
+  .step.done { color: var(--text-secondary); }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 600;
+  }
+  .step.active .step-num { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .step.done .step-num { background: var(--primary); color: #fff; border-color: var(--primary); font-size: 0.6rem; }
+  .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 10px; min-width: 20px; }
+
+  /* MAPPING ENTRY */
+  .map-entry { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow-sm); }
+  .map-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .map-items { display: flex; flex-direction: column; gap: 7px; }
+  .map-item-row { display: grid; grid-template-columns: 1fr 80px 32px; gap: 8px; align-items: center; }
+
+  /* STAT ICON WRAP */
+  .stat-icon-wrap {
+    width: 36px; height: 36px; border-radius: 10px; background: var(--primary-light);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  }
+  .stat-icon-wrap svg { width: 18px; height: 18px; stroke: var(--primary); fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* CARD TITLE ICON */
+  .card-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .card-title-row svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .card-title { font-size: 0.72rem; font-weight: 600; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0; }
+
+  /* LOGIN PAGE */
+  .login-page {
+    position: fixed; inset: 0; z-index: 1000;
+    display: flex; align-items: stretch;
+    background: var(--bg);
+  }
+  .login-left {
+    width: 52%; background: var(--primary);
+    display: flex; flex-direction: column;
+    justify-content: center; padding: 72px 64px;
+    position: relative; overflow: hidden;
+  }
+  .login-left::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(44,177,166,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(44,177,166,0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .login-brand {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 56px;
+  }
+  .login-brand-mark {
+    width: 48px; height: 48px; border-radius: 12px; background: var(--teal);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .login-brand-name {
+    font-family: var(--display); font-weight: 700; font-size: 1.4rem;
+    letter-spacing: -0.04em; color: #fff;
+  }
+  .login-brand-tag {
+    font-size: 0.7rem; color: rgba(255,255,255,0.45); font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px;
+  }
+  .login-headline {
+    font-family: var(--display); font-weight: 700; font-size: 2.4rem;
+    line-height: 1.15; letter-spacing: -0.04em; color: #fff; margin-bottom: 20px;
+    max-width: 420px;
+  }
+  .login-headline span { color: var(--teal); }
+  .login-desc {
+    font-size: 1rem; color: rgba(255,255,255,0.6); line-height: 1.65;
+    max-width: 400px; margin-bottom: 44px; font-weight: 400;
+  }
+  .login-features { display: flex; flex-direction: column; gap: 14px; }
+  .login-feature {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 0.9rem; color: rgba(255,255,255,0.82); font-weight: 400; line-height: 1.5;
+  }
+  .login-feature-check {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--teal);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+  .login-feature-check svg { width: 10px; height: 10px; stroke: #fff; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .login-right {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 48px 48px;
+  }
+  .login-card {
+    width: 100%; max-width: 400px;
+  }
+  .login-card-title {
+    font-family: var(--display); font-weight: 700; font-size: 1.75rem;
+    letter-spacing: -0.04em; color: var(--text); margin-bottom: 6px;
+  }
+  .login-card-sub {
+    font-size: 0.875rem; color: var(--muted); margin-bottom: 36px;
+  }
+  .login-field { margin-bottom: 18px; }
+  .login-field label {
+    font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);
+    margin-bottom: 7px; display: block; letter-spacing: 0;
+  }
+  .login-field input {
+    width: 100%; padding: 11px 14px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    font-size: 0.95rem; color: var(--text); font-family: var(--sans);
+    outline: none; transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  .login-field input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(44,177,166,0.15);
+  }
+  .login-field input::placeholder { color: var(--muted); }
+  .login-btn {
+    width: 100%; padding: 13px; border-radius: 10px;
+    background: var(--primary); color: #fff; border: none;
+    font-size: 0.95rem; font-weight: 600; font-family: var(--sans);
+    cursor: pointer; transition: all 0.12s; letter-spacing: -0.01em;
+    margin-top: 8px;
+  }
+  .login-btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(30,58,95,0.25); }
+  .login-footer-note {
+    text-align: center; margin-top: 24px; font-size: 0.78rem; color: var(--muted);
+  }
+  .login-divider {
+    display: flex; align-items: center; gap: 12px; margin: 24px 0;
+  }
+  .login-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .login-divider-text { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
+  .login-demo-btn {
+    width: 100%; padding: 11px; border-radius: 10px;
+    background: transparent; color: var(--text-secondary);
+    border: 1.5px solid var(--border); font-size: 0.9rem; font-weight: 500;
+    font-family: var(--sans); cursor: pointer; transition: all 0.12s;
+  }
+  .login-demo-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+  .login-hidden { display: none !important; }
+  .flex { display: flex; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .mb-3 { margin-bottom: 12px; }
+  .mb-4 { margin-bottom: 16px; }
+  .mt-3 { margin-top: 12px; }
+  .text-right { text-align: right; }
+  .w-full { width: 100%; }
+  .text-muted { color: var(--muted); font-size: 0.84rem; }
+  .mono { font-family: var(--mono); font-size: 0.82em; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page" class="login-page">
+  <!-- Left: Branding & value props -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-brand-mark">
+        <svg width="28" height="28" viewBox="0 0 38 38" fill="none">
+          <text x="19" y="27" font-family="Figtree, -apple-system, sans-serif" font-size="24" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-1">S</text>
+        </svg>
+      </div>
+      <div>
+        <div class="login-brand-name">SupplySync</div>
+        <div class="login-brand-tag">Orthodontics</div>
+      </div>
+    </div>
+
+    <div class="login-headline">Smart supply ordering for <span>orthodontic</span> practices.</div>
+    <p class="login-desc">SupplySync connects your appointment schedule directly to your supply ordering process.</p>
+
+    <div class="login-features">
+      <div class="login-feature">
+        <div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span>Automatically generates order lists based on scheduled procedures</span>
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span>Reduces over-ordering and stockouts</span>
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span>Eliminates manual tracking and guesswork</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Login form -->
+  <div class="login-right">
+    <div class="login-card">
+      <div class="login-card-title">Welcome back</div>
+      <div class="login-card-sub">Sign in to your SupplySync account</div>
+
+      <div class="login-field">
+        <label>Email address</label>
+        <input type="email" placeholder="you@practice.com" id="login-email"/>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" placeholder="••••••••" id="login-password"/>
+      </div>
+
+      <button class="login-btn" onclick="doLogin()">Sign In</button>
+
+      <div class="login-divider">
+        <div class="login-divider-line"></div>
+        <div class="login-divider-text">or</div>
+        <div class="login-divider-line"></div>
+      </div>
+
+      <button class="login-demo-btn" onclick="doLogin()">Continue with Demo Account</button>
+
+      <div class="login-footer-note">By signing in you agree to our Terms of Service and Privacy Policy.</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" style="display:flex;width:100%;min-height:100vh;">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+        <rect width="38" height="38" rx="9" fill="#2CB1A6"/>
+        <text x="19" y="27" font-family="Figtree, -apple-system, BlinkMacSystemFont, sans-serif" font-size="24" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-1">S</text>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-name">SupplySync</div>
+      <div class="logo-tagline">Orthodontics</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section-label">Workspace</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="navigate('appointments')">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      Appointments
+    </div>
+    <div class="nav-item" onclick="navigate('procedures')">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+      Procedure Maps
+    </div>
+    <div class="nav-section-label">Supply</div>
+    <div class="nav-item" onclick="navigate('inventory')">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+      Inventory
+    </div>
+    <div class="nav-item" onclick="navigate('order')">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
+      Generate Order
+    </div>
+  </nav>
+  <div class="sidebar-footer"><div class="sidebar-footer-dot"></div>MVP v1.0</div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Next 14 days · Valley Orthodontics</div>
+    </div>
+
+    <div class="grid-4 section">
+      <div class="stat-card">
+        <div class="stat-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="stat-label">Upcoming Appts</div>
+        <div class="stat-value" id="dash-appts">0</div>
+        <div class="stat-sub">next 14 days</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="stat-label">Items Needed</div>
+        <div class="stat-value" id="dash-items">0</div>
+        <div class="stat-sub">total supply units</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap" style="background:rgba(245,158,11,0.1)"><svg viewBox="0 0 24 24" style="stroke:var(--warning)"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div class="stat-label">Low Stock Alerts</div>
+        <div class="stat-value" id="dash-alerts">0</div>
+        <div class="stat-sub">below threshold</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap" style="background:var(--teal-light)"><svg viewBox="0 0 24 24" style="stroke:var(--teal)"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
+        <div class="stat-label">Order Ready</div>
+        <div class="stat-value" id="dash-order-count">0</div>
+        <div class="stat-sub">items to reorder</div>
+      </div>
+    </div>
+
+    <div class="grid-2 section">
+      <div class="card">
+        <div class="card-title-row">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="card-title">Low Stock Alerts</div>
+        </div>
+        <div id="dash-alert-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title-row">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div class="card-title">Upcoming Appointments</div>
+        </div>
+        <div id="dash-appt-list"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <div class="card-title">Supply Demand vs. Inventory</div>
+      </div>
+      <div id="dash-demand-table"></div>
+      <hr class="divider"/>
+      <button class="btn btn-teal" onclick="navigate('order')">
+        <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        Generate Order
+      </button>
+    </div>
+  </div>
+
+  <!-- APPOINTMENTS -->
+  <div id="page-appointments" class="page">
+    <div class="page-header flex justify-between items-center">
+      <div>
+        <div class="page-title">Appointments</div>
+        <div class="page-sub">Manage upcoming patient schedule</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('appt-modal')">
+        <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Appointment
+      </button>
+    </div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Procedure Type</th><th>Location</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="appt-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PROCEDURES -->
+  <div id="page-procedures" class="page">
+    <div class="page-header flex justify-between items-center">
+      <div>
+        <div class="page-title">Procedure Maps</div>
+        <div class="page-sub">Define which supplies each procedure requires</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('proc-modal')">
+        <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Mapping
+      </button>
+    </div>
+    <div id="proc-list"></div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div id="page-inventory" class="page">
+    <div class="page-header flex justify-between items-center">
+      <div>
+        <div class="page-title">Inventory</div>
+        <div class="page-sub">Track current supply levels and thresholds</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('inv-modal')">
+        <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Item
+      </button>
+    </div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Item Name</th><th>SKU</th><th>Current Qty</th><th>Threshold</th><th>Supplier</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="inv-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ORDER -->
+  <div id="page-order" class="page">
+    <div class="page-header">
+      <div class="page-title">Generate Order</div>
+      <div class="page-sub">Suggested purchase quantities based on schedule + inventory</div>
+    </div>
+
+    <div class="steps">
+      <div class="step done"><div class="step-num"><svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div> Schedule</div>
+      <div class="step-line"></div>
+      <div class="step done"><div class="step-num"><svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div> Mappings</div>
+      <div class="step-line"></div>
+      <div class="step done"><div class="step-num"><svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div> Inventory</div>
+      <div class="step-line"></div>
+      <div class="step active"><div class="step-num">4</div> Order</div>
+    </div>
+
+    <!-- Demand Calculation panel -->
+    <div id="order-panel-demand" class="card section">
+      <div class="card-title-row">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <div class="card-title">Demand Calculation</div>
+      </div>
+      <div id="demand-calc"></div>
+      <hr class="divider"/>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="btn btn-primary" onclick="showOrderPanel('suggested')">
+          Next
+          <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Suggested Order panel (hidden initially) -->
+    <div id="order-panel-suggested" class="card section" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="card-title-row" style="margin-bottom:0;">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <div class="card-title" style="margin-bottom:0;">Suggested Order</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('order-item-modal')">
+          <svg style="width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Item
+        </button>
+      </div>
+      <div id="order-list"></div>
+      <div id="order-low-stock" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);"></div>
+      <hr class="divider"/>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <button class="btn btn-ghost" onclick="showOrderPanel('demand')">
+          <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        <div class="flex gap-2">
+          <button class="btn btn-teal" onclick="exportCSV()">
+            <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-secondary" onclick="copyOrder()">
+            <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy to Clipboard
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+</div><!-- end app-shell -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="appt-modal">
+  <div class="modal">
+    <div class="modal-title">Add Appointment</div>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="appt-date"/></div>
+      <div class="form-group"><label>Procedure Type</label>
+        <select id="appt-proc">
+          <option value="">Select...</option>
+          <option>New Bonding</option>
+          <option>Adjustment</option>
+          <option>Debond</option>
+          <option>Emergency Visit</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Location</label><input type="text" id="appt-loc" placeholder="Main Office"/></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('appt-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addAppointment()">Add Appointment</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="inv-modal">
+  <div class="modal">
+    <div class="modal-title">Add Inventory Item</div>
+    <div class="form-group"><label>Item Name</label><input type="text" id="inv-name" placeholder="e.g. Brackets MBT 0.022"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>SKU (optional)</label><input type="text" id="inv-sku" placeholder="SKU-001"/></div>
+      <div class="form-group"><label>Supplier</label><input type="text" id="inv-supplier" placeholder="Henry Schein"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Current Quantity</label><input type="number" id="inv-qty" min="0" placeholder="0"/></div>
+      <div class="form-group"><label>Reorder Threshold</label><input type="number" id="inv-thresh" min="0" placeholder="20"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('inv-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addInventoryItem()">Add to Inventory</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="proc-modal">
+  <div class="modal">
+    <div class="modal-title">Add Procedure Mapping</div>
+    <div class="form-group">
+      <label>Procedure Name</label>
+      <select id="proc-name" onchange="handleProcNameChange()">
+        <option value="">Select procedure...</option>
+      </select>
+    </div>
+    <div class="form-group" id="proc-new-name-group" style="display:none;">
+      <label>New Procedure Name</label>
+      <input type="text" id="proc-new-name" placeholder="e.g. Retainer Check"/>
+    </div>
+    <div style="font-size:0.75rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Supply Items</div>
+    <div id="proc-supply-rows"></div>
+    <button class="btn btn-secondary btn-sm mt-3" onclick="addSupplyRow()">+ Add Supply Item</button>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('proc-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProcMapping()">Save Mapping</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="order-item-modal">
+  <div class="modal">
+    <div class="modal-title">Add Item to Order</div>
+    <div class="form-group">
+      <label>Item</label>
+      <select id="order-item-select" onchange="handleOrderItemSelect()">
+        <option value="">Select from inventory...</option>
+      </select>
+    </div>
+    <div class="form-group" id="order-item-custom-group" style="display:none;">
+      <label>Custom Item Name</label>
+      <input type="text" id="order-item-custom-name" placeholder="e.g. Ligature Ties"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Quantity</label>
+        <input type="number" id="order-item-qty" min="1" value="1"/>
+      </div>
+      <div class="form-group">
+        <label>Supplier</label>
+        <input type="text" id="order-item-supplier" placeholder="e.g. Henry Schein"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('order-item-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addOrderItem()">Add to Order</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+const state = {
+  appointments: [
+    { id:1, date:'2026-03-24', procedure:'New Bonding', location:'Main Office' },
+    { id:2, date:'2026-03-24', procedure:'New Bonding', location:'Main Office' },
+    { id:3, date:'2026-03-25', procedure:'Adjustment', location:'Main Office' },
+    { id:4, date:'2026-03-25', procedure:'Adjustment', location:'North Branch' },
+    { id:5, date:'2026-03-26', procedure:'Adjustment', location:'Main Office' },
+    { id:6, date:'2026-03-26', procedure:'New Bonding', location:'Main Office' },
+    { id:7, date:'2026-03-27', procedure:'Debond', location:'Main Office' },
+    { id:8, date:'2026-03-28', procedure:'Adjustment', location:'North Branch' },
+    { id:9, date:'2026-03-28', procedure:'Emergency Visit', location:'Main Office' },
+    { id:10, date:'2026-03-31', procedure:'New Bonding', location:'Main Office' },
+    { id:11, date:'2026-04-01', procedure:'Adjustment', location:'Main Office' },
+    { id:12, date:'2026-04-02', procedure:'Adjustment', location:'North Branch' },
+  ],
+  inventory: [
+    { id:1, name:'Brackets MBT 0.022', sku:'BRK-001', qty:40, threshold:30, supplier:'Henry Schein' },
+    { id:2, name:'Adhesive Paste', sku:'ADH-002', qty:8, threshold:10, supplier:'Ormco' },
+    { id:3, name:'Archwire NiTi 016', sku:'AWR-003', qty:5, threshold:15, supplier:'3M Unitek' },
+    { id:4, name:'Elastics 3/16"', sku:'ELS-004', qty:120, threshold:50, supplier:'Henry Schein' },
+    { id:5, name:'Debond Kit', sku:'DBK-005', qty:3, threshold:5, supplier:'Ormco' },
+    { id:6, name:'Cheek Retractors', sku:'CRT-006', qty:25, threshold:10, supplier:'Patterson' },
+  ],
+  procedures: [
+    { name:'New Bonding', supplies:[{item:'Brackets MBT 0.022', qty:20},{item:'Adhesive Paste', qty:1},{item:'Cheek Retractors', qty:1}] },
+    { name:'Adjustment', supplies:[{item:'Archwire NiTi 016', qty:1},{item:'Elastics 3/16"', qty:2}] },
+    { name:'Debond', supplies:[{item:'Debond Kit', qty:1}] },
+    { name:'Emergency Visit', supplies:[{item:'Archwire NiTi 016', qty:1}] },
+  ],
+  nextApptId: 13,
+  nextInvId: 7,
+};
+
+// ─── NAVIGATION ──────────────────────────────────────────
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    const txt = n.textContent.toLowerCase();
+    if(
+      (page === 'dashboard' && txt.includes('dashboard')) ||
+      (page === 'appointments' && txt.includes('appointment')) ||
+      (page === 'procedures' && txt.includes('procedure')) ||
+      (page === 'inventory' && txt.includes('inventory')) ||
+      (page === 'order' && txt.includes('generate'))
+    ) n.classList.add('active');
+  });
+  render(page);
+}
+
+// ─── RENDER ──────────────────────────────────────────────
+function render(page) {
+  if(page === 'dashboard') renderDashboard();
+  else if(page === 'appointments') renderAppointments();
+  else if(page === 'procedures') renderProcedures();
+  else if(page === 'inventory') renderInventory();
+  else if(page === 'order') renderOrder();
+}
+
+function calcDemand() {
+  const demand = {};
+  state.appointments.forEach(appt => {
+    const proc = state.procedures.find(p => p.name === appt.procedure);
+    if(!proc) return;
+    proc.supplies.forEach(s => {
+      demand[s.item] = (demand[s.item] || 0) + s.qty;
+    });
+  });
+  return demand;
+}
+
+function calcOrder() {
+  const demand = calcDemand();
+  const order = {};
+  Object.entries(demand).forEach(([item, needed]) => {
+    const inv = state.inventory.find(i => i.name === item);
+    const onHand = inv ? inv.qty : 0;
+    const toOrder = Math.max(0, needed - onHand);
+    if(toOrder > 0) order[item] = { needed, onHand, toOrder, supplier: inv ? inv.supplier : '—' };
+  });
+  return order;
+}
+
+function renderDashboard() {
+  const demand = calcDemand();
+  const order = calcOrder();
+  const totalItems = Object.values(demand).reduce((a,b)=>a+b,0);
+  const lowStock = state.inventory.filter(i => i.qty <= i.threshold);
+  const orderCount = Object.keys(order).length;
+
+  document.getElementById('dash-appts').textContent = state.appointments.length;
+  document.getElementById('dash-items').textContent = totalItems;
+  document.getElementById('dash-alerts').textContent = lowStock.length;
+  document.getElementById('dash-order-count').textContent = orderCount;
+
+  // Alerts
+  const al = document.getElementById('dash-alert-list');
+  if(lowStock.length === 0) {
+    al.innerHTML = '<div class="alert alert-success">All items are above threshold</div>';
+  } else {
+    al.innerHTML = lowStock.map(i => `
+      <div class="alert ${i.qty === 0 ? 'alert-danger' : 'alert-warn'}">
+        <div><strong>${i.name}</strong> — ${i.qty} remaining <span style="color:var(--muted)">(threshold: ${i.threshold})</span></div>
+      </div>`).join('');
+  }
+
+  // Upcoming appts (first 6)
+  const al2 = document.getElementById('dash-appt-list');
+  const sorted = [...state.appointments].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+  al2.innerHTML = `<table><thead><tr><th>Date</th><th>Procedure</th><th>Location</th></tr></thead><tbody>
+    ${sorted.map(a=>`<tr><td class="mono">${a.date}</td><td>${a.procedure}</td><td>${a.location}</td></tr>`).join('')}
+  </tbody></table>`;
+
+  // Demand table
+  const dt = document.getElementById('dash-demand-table');
+  const rows = Object.entries(demand).map(([item, needed]) => {
+    const inv = state.inventory.find(i => i.name === item);
+    const onHand = inv ? inv.qty : 0;
+    const toOrder = Math.max(0, needed - onHand);
+    const pct = Math.min(100, Math.round((onHand/needed)*100));
+    const barColor = pct < 40 ? 'var(--danger)' : pct < 70 ? 'var(--warning)' : 'var(--success)';
+    const status = toOrder > 0
+      ? `<span class="badge badge-red">Order ${toOrder}</span>`
+      : `<span class="badge badge-green">Covered</span>`;
+    return `<tr>
+      <td>${item}</td>
+      <td class="mono">${needed}</td>
+      <td class="mono">${onHand}</td>
+      <td style="width:120px"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div></td>
+      <td>${status}</td>
+    </tr>`;
+  });
+  dt.innerHTML = `<table><thead><tr><th>Supply Item</th><th>Needed</th><th>On Hand</th><th>Level</th><th>Status</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+function renderAppointments() {
+  const sorted = [...state.appointments].sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('appt-table-body').innerHTML = sorted.map(a => `
+    <tr>
+      <td class="mono">${a.date}</td>
+      <td><span class="badge ${a.procedure==='New Bonding'?'badge-blue':a.procedure==='Adjustment'?'badge-green':a.procedure==='Debond'?'badge-yellow':'badge-red'}">${a.procedure}</span></td>
+      <td>${a.location}</td>
+      <td><span class="badge badge-gray">Scheduled</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteAppt(${a.id})">Remove</button></td>
+    </tr>`).join('');
+}
+
+function renderProcedures() {
+  const el = document.getElementById('proc-list');
+  el.innerHTML = state.procedures.map((p,pi) => {
+    const rows = p.supplies.map(s => {
+      const inv = state.inventory.find(i => i.name === s.item);
+      const supplier = inv && inv.supplier ? inv.supplier : '—';
+      const sku = inv && inv.sku ? inv.sku : '—';
+      return `<tr>
+        <td style="font-weight:500">${s.item}</td>
+        <td class="mono" style="color:var(--muted)">${sku}</td>
+        <td class="mono" style="text-align:center">${s.qty}</td>
+        <td style="color:var(--text-secondary)">${supplier}</td>
+      </tr>`;
+    }).join('');
+    return `
+    <div class="map-entry">
+      <div class="map-entry-header">
+        <div style="font-weight:700;font-size:1rem;letter-spacing:-0.02em;">${p.name}</div>
+        <button class="btn btn-danger btn-sm" onclick="deleteProc(${pi})">Remove</button>
+      </div>
+      <table style="table-layout:fixed;width:100%">
+        <colgroup>
+          <col style="width:auto"/>
+          <col style="width:110px"/>
+          <col style="width:130px"/>
+          <col style="width:150px"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th style="text-align:left">Item Name</th>
+            <th style="text-align:left">SKU</th>
+            <th style="text-align:center">Qty / Procedure</th>
+            <th style="text-align:left">Supplier</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
+
+function renderInventory() {
+  document.getElementById('inv-table-body').innerHTML = state.inventory.map(i => {
+    const outOfStock = i.qty === 0;
+    const low = i.qty <= i.threshold;
+    const statusBadge = outOfStock
+      ? `<span class="badge badge-red">Out of Stock</span>`
+      : low
+      ? `<span class="badge badge-yellow">Low Stock</span>`
+      : `<span class="badge badge-green">In Stock</span>`;
+    return `<tr>
+      <td style="font-weight:500">${i.name}</td>
+      <td class="mono" style="color:var(--muted)">${i.sku || '—'}</td>
+      <td class="mono">${i.qty}</td>
+      <td class="mono">${i.threshold}</td>
+      <td style="color:var(--text-secondary)">${i.supplier || '—'}</td>
+      <td>${statusBadge}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteInv(${i.id})">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function showOrderPanel(panel) {
+  document.getElementById('order-panel-demand').style.display = panel === 'demand' ? 'block' : 'none';
+  document.getElementById('order-panel-suggested').style.display = panel === 'suggested' ? 'block' : 'none';
+}
+
+// ─── ORDER STATE ─────────────────────────────────────────
+let orderState = {}; // { itemName: qty }
+
+function initOrderState() {
+  const order = calcOrder();
+  orderState = {};
+  Object.entries(order).forEach(([item, d]) => {
+    orderState[item] = { qty: d.toOrder, needed: d.needed, onHand: d.onHand, supplier: d.supplier };
+  });
+}
+
+function adjustOrderQty(item, delta) {
+  if(!orderState[item]) return;
+  orderState[item].qty = Math.max(0, orderState[item].qty + delta);
+  document.getElementById('order-qty-' + CSS.escape(item)).textContent = orderState[item].qty;
+}
+
+function addLowStockToOrder(item) {
+  const inv = state.inventory.find(i => i.name === item);
+  if(!inv) return;
+  const shortfall = Math.max(0, inv.threshold - inv.qty);
+  const qty = shortfall > 0 ? shortfall : inv.threshold;
+  if(orderState[item]) {
+    orderState[item].qty += qty;
+    document.getElementById('order-qty-' + CSS.escape(item)).textContent = orderState[item].qty;
+  } else {
+    orderState[item] = { qty, needed: 0, onHand: inv.qty, supplier: inv.supplier || '—' };
+    renderOrderList();
+  }
+  // Update button to show added state
+  const btn = document.getElementById('low-stock-btn-' + CSS.escape(item));
+  if(btn) {
+    btn.textContent = '✓ Added';
+    btn.disabled = true;
+    btn.style.opacity = '0.55';
+  }
+  toast(`${item} added to order`);
+}
+
+function renderOrderList() {
+  const ol = document.getElementById('order-list');
+  const entries = Object.entries(orderState);
+  if(entries.length === 0) {
+    ol.innerHTML = '<div class="alert alert-success">All supplies are covered — no order needed.</div>';
+    return;
+  }
+  ol.innerHTML = entries.map(([item, d]) => `
+    <div class="order-item" style="gap:12px;">
+      <div style="flex:1;min-width:0;">
+        <div class="order-item-name">${item}</div>
+        <div class="order-item-detail">Needed ${d.needed} · On hand ${d.onHand} · Via ${d.supplier}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <button onclick="adjustOrderQty('${item.replace(/'/g,"\\'")}', -1)"
+          style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">−</button>
+        <div class="order-qty" id="order-qty-${CSS.escape(item)}" style="min-width:44px;text-align:center;">${d.qty}</div>
+        <button onclick="adjustOrderQty('${item.replace(/'/g,"\\'")}', 1)"
+          style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">+</button>
+        <button onclick="removeOrderItem('${item.replace(/'/g,"\\'")}' )"
+          class="btn btn-danger btn-sm" style="margin-left:4px;">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function removeOrderItem(item) {
+  delete orderState[item];
+  renderOrderList();
+  // If item is low stock, restore its Add to Order button in the alerts section
+  renderLowStockAlerts();
+  toast(`${item} removed from order`);
+}
+
+function handleOrderItemSelect() {
+  const sel = document.getElementById('order-item-select');
+  const customGroup = document.getElementById('order-item-custom-group');
+  const supplierInput = document.getElementById('order-item-supplier');
+  if(sel.value === '__custom__') {
+    customGroup.style.display = 'block';
+    supplierInput.value = '';
+  } else {
+    customGroup.style.display = 'none';
+    document.getElementById('order-item-custom-name').value = '';
+    if(sel.value) {
+      const inv = state.inventory.find(i => i.name === sel.value);
+      supplierInput.value = inv && inv.supplier ? inv.supplier : '';
+    } else {
+      supplierInput.value = '';
+    }
+  }
+}
+
+function addOrderItem() {
+  const sel = document.getElementById('order-item-select');
+  let name = sel.value === '__custom__'
+    ? document.getElementById('order-item-custom-name').value.trim()
+    : sel.value;
+  if(!name) { toast('Please select or enter an item'); return; }
+  const qty = parseInt(document.getElementById('order-item-qty').value) || 1;
+  const supplier = document.getElementById('order-item-supplier').value.trim() || '—';
+  const inv = state.inventory.find(i => i.name === name);
+  if(orderState[name]) {
+    orderState[name].qty += qty;
+  } else {
+    orderState[name] = { qty, needed: 0, onHand: inv ? inv.qty : 0, supplier };
+  }
+  closeModal('order-item-modal');
+  renderOrderList();
+  renderLowStockAlerts();
+  toast(`${name} added to order`);
+}
+
+function renderLowStockAlerts() {
+  const lowStock = state.inventory.filter(i => i.qty <= i.threshold);
+  const el = document.getElementById('order-low-stock');
+  if(!el) return;
+  if(lowStock.length === 0) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="card-title-row" style="margin-bottom:12px;">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div class="card-title" style="color:var(--warning)">Low Stock Alerts</div>
+    </div>
+    ${lowStock.map(i => {
+      const inOrder = !!orderState[i.name];
+      return `
+      <div class="order-item" style="background:var(--warning-bg);border-color:var(--warning-border);margin-bottom:8px;">
+        <div style="flex:1;min-width:0;">
+          <div class="order-item-name">${i.name}</div>
+          <div class="order-item-detail" style="color:var(--warning);">${i.qty} in stock · threshold ${i.threshold} · ${i.supplier || '—'}</div>
+        </div>
+        <button id="low-stock-btn-${CSS.escape(i.name)}"
+          class="btn btn-sm"
+          style="flex-shrink:0;background:var(--warning);color:#fff;border:none;${inOrder ? 'opacity:0.55;' : ''}"
+          onclick="addLowStockToOrder('${i.name.replace(/'/g,"\\'")}')"
+          ${inOrder ? 'disabled' : ''}>
+          ${inOrder ? '✓ Added' : 'Add to Order'}
+        </button>
+      </div>`;
+    }).join('')}`;
+}
+
+function renderOrder() {
+  showOrderPanel('demand');
+  initOrderState();
+
+  // Demand calc
+  const dc = document.getElementById('demand-calc');
+  const procCounts = {};
+  state.appointments.forEach(a => procCounts[a.procedure] = (procCounts[a.procedure]||0)+1);
+  const rows = Object.entries(procCounts).map(([proc,cnt]) => {
+    const p = state.procedures.find(x=>x.name===proc);
+    if(!p) return '';
+    return p.supplies.map(s => `
+      <div class="order-item">
+        <div>
+          <div class="order-item-name">${s.item}</div>
+          <div class="order-item-detail">${cnt} × ${proc} × ${s.qty} each</div>
+        </div>
+        <div class="order-qty">${cnt * s.qty}</div>
+      </div>`).join('');
+  }).join('');
+  dc.innerHTML = rows || '<div class="text-muted">No demand calculated.</div>';
+
+  // Suggested order list with adjustable quantities
+  renderOrderList();
+
+  // Low stock alerts
+  renderLowStockAlerts();
+}
+
+// ─── MODALS ──────────────────────────────────────────────
+function openModal(id) {
+  if(id === 'proc-modal') {
+    // Reset fields
+    document.getElementById('proc-supply-rows').innerHTML = '';
+    document.getElementById('proc-new-name').value = '';
+    document.getElementById('proc-new-name-group').style.display = 'none';
+    // Populate dropdown from current state.procedures + New Procedure option
+    const sel = document.getElementById('proc-name');
+    sel.innerHTML = '<option value="">Select procedure...</option>';
+    state.procedures.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    });
+    const newOpt = document.createElement('option');
+    newOpt.value = '__new__';
+    newOpt.textContent = '+ New Procedure';
+    sel.appendChild(newOpt);
+    sel.value = '';
+  }
+  if(id === 'order-item-modal') {
+    // Reset fields
+    document.getElementById('order-item-qty').value = 1;
+    document.getElementById('order-item-supplier').value = '';
+    document.getElementById('order-item-custom-name').value = '';
+    document.getElementById('order-item-custom-group').style.display = 'none';
+    // Populate inventory dropdown + custom option
+    const sel = document.getElementById('order-item-select');
+    sel.innerHTML = '<option value="">Select from inventory...</option>';
+    state.inventory.forEach(i => {
+      const opt = document.createElement('option');
+      opt.value = i.name;
+      opt.textContent = i.name + (i.sku ? ` (${i.sku})` : '');
+      sel.appendChild(opt);
+    });
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '+ Custom Item';
+    sel.appendChild(customOpt);
+    sel.value = '';
+  }
+  document.getElementById(id).classList.add('open');
+}
+
+function handleProcNameChange() {
+  const sel = document.getElementById('proc-name');
+  const newGroup = document.getElementById('proc-new-name-group');
+  newGroup.style.display = sel.value === '__new__' ? 'block' : 'none';
+  if(sel.value !== '__new__') {
+    document.getElementById('proc-new-name').value = '';
+  }
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+});
+
+// ─── ACTIONS ─────────────────────────────────────────────
+function addAppointment() {
+  const date = document.getElementById('appt-date').value;
+  const proc = document.getElementById('appt-proc').value;
+  const loc = document.getElementById('appt-loc').value || 'Main Office';
+  if(!date || !proc) { toast('Please fill all fields'); return; }
+  state.appointments.push({ id: state.nextApptId++, date, procedure: proc, location: loc });
+  closeModal('appt-modal');
+  renderAppointments();
+  toast('Appointment added');
+}
+
+function deleteAppt(id) {
+  state.appointments = state.appointments.filter(a => a.id !== id);
+  renderAppointments();
+  toast('Appointment removed');
+}
+
+function addInventoryItem() {
+  const name = document.getElementById('inv-name').value.trim();
+  const sku = document.getElementById('inv-sku').value.trim();
+  const qty = parseInt(document.getElementById('inv-qty').value) || 0;
+  const threshold = parseInt(document.getElementById('inv-thresh').value) || 0;
+  const supplier = document.getElementById('inv-supplier').value.trim();
+  if(!name) { toast('Item name required'); return; }
+  state.inventory.push({ id: state.nextInvId++, name, sku, qty, threshold, supplier });
+  closeModal('inv-modal');
+  renderInventory();
+  toast('Item added to inventory');
+}
+
+function deleteInv(id) {
+  state.inventory = state.inventory.filter(i => i.id !== id);
+  renderInventory();
+  toast('Item removed');
+}
+
+let supplyRows = [];
+function openProcModal() {
+  supplyRows = [];
+  document.getElementById('proc-supply-rows').innerHTML = '';
+  openModal('proc-modal');
+}
+
+function addSupplyRow() {
+  const rowId = Date.now();
+  supplyRows.push(rowId);
+  const invOptions = state.inventory.map(i=>`<option>${i.name}</option>`).join('');
+  const row = document.createElement('div');
+  row.className = 'map-item-row mb-3';
+  row.id = 'supply-row-' + rowId;
+  row.innerHTML = `
+    <select class="supply-item-sel">${invOptions}</select>
+    <input type="number" class="supply-qty-inp" min="1" value="1" style="text-align:center"/>
+    <button class="btn btn-danger btn-sm" onclick="removeRow(${rowId})" style="padding:5px 10px">✕</button>`;
+  document.getElementById('proc-supply-rows').appendChild(row);
+}
+
+function removeRow(id) {
+  const el = document.getElementById('supply-row-' + id);
+  if(el) el.remove();
+  supplyRows = supplyRows.filter(r => r !== id);
+}
+
+function saveProcMapping() {
+  const sel = document.getElementById('proc-name');
+  let name = sel.value;
+  if(name === '__new__') {
+    name = document.getElementById('proc-new-name').value.trim();
+    if(!name) { toast('Please enter a procedure name'); return; }
+  }
+  if(!name) { toast('Select a procedure'); return; }
+  const supplies = [];
+  document.querySelectorAll('.map-item-row').forEach(row => {
+    const item = row.querySelector('.supply-item-sel').value;
+    const qty = parseInt(row.querySelector('.supply-qty-inp').value) || 1;
+    supplies.push({ item, qty });
+  });
+  if(supplies.length === 0) { toast('Add at least one supply item'); return; }
+  const existing = state.procedures.findIndex(p => p.name === name);
+  if(existing >= 0) state.procedures[existing] = { name, supplies };
+  else state.procedures.push({ name, supplies });
+  closeModal('proc-modal');
+  renderProcedures();
+  toast('Procedure mapping saved');
+}
+
+function deleteProc(idx) {
+  state.procedures.splice(idx, 1);
+  renderProcedures();
+  toast('Mapping removed');
+}
+
+// ─── EXPORT ──────────────────────────────────────────────
+function exportCSV() {
+  const lines = ['Item,Quantity Needed,On Hand,To Order,Supplier'];
+  Object.entries(orderState).forEach(([item, d]) => {
+    lines.push(`"${item}",${d.needed},${d.onHand},${d.qty},"${d.supplier}"`);
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'supply-order.csv'; a.click();
+  toast('CSV exported!');
+}
+
+function copyOrder() {
+  const text = Object.entries(orderState).map(([item, d]) => `${item}: ${d.qty} units`).join('\n');
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!'));
+}
+
+// ─── TOAST ───────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+// ─── LOGIN ───────────────────────────────────────────────
+function doLogin() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'flex';
+  renderDashboard();
+}
+
+// ─── INIT ────────────────────────────────────────────────
+// App shell hidden until login
+document.getElementById('app-shell').style.display = 'none';
+</script>
+</body>
+</html>
