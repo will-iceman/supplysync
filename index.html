@@ -1,939 +1,539 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SupplySync</title>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Satoshi:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #F7F9FB;
-    --surface: #ffffff;
-    --surface2: #EEF2F7;
-    --border: #DDE3ED;
-    --border-strong: #C2CBDA;
-    --primary: #1E3A5F;
-    --primary-dark: #162d4a;
-    --primary-light: #E8EEF6;
-    --teal: #2CB1A6;
-    --teal-dark: #229990;
-    --teal-light: #E6F7F6;
-    --text: #1F2933;
-    --text-secondary: #6B7280;
-    --muted: #9CA3AF;
-    --success: #22C55E;
-    --danger: #EF4444;
-    --warning: #F59E0B;
-    --success-bg: rgba(34,197,94,0.09);
-    --success-border: rgba(34,197,94,0.24);
-    --danger-bg: rgba(239,68,68,0.08);
-    --danger-border: rgba(239,68,68,0.22);
-    --warning-bg: rgba(245,158,11,0.08);
-    --warning-border: rgba(245,158,11,0.22);
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
-    --display: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
-    --radius: 12px;
-    --radius-sm: 8px;
-    --shadow-sm: 0 1px 3px rgba(30,58,95,0.07), 0 1px 2px rgba(30,58,95,0.04);
-    --shadow: 0 4px 16px rgba(30,58,95,0.09), 0 1px 4px rgba(30,58,95,0.05);
+    --bg-page:#F7F7F7; --bg-card:#ffffff; --bg-surface:#F1EFE8;
+    --text-primary:#010101; --text-secondary:#444441; --text-muted:#888780; --text-hint:#B4B2A9;
+    --border:rgba(0,0,0,0.08); --border-mid:rgba(0,0,0,0.14);
+    --r-card:14px; --r-btn:10px; --r-pill:100px; --r-sm:8px;
+    --mono:'JetBrains Mono',monospace;
+    --grad:linear-gradient(90deg,#ACCEEA 0%,#FF9270 55%,#FFE989 100%);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; display: flex; -webkit-font-smoothing: antialiased; }
+  html,body { font-family:'Satoshi',system-ui,-apple-system,sans-serif; background:var(--bg-page); color:var(--text-primary); font-size:15px; font-weight:400; line-height:1.55; min-height:100vh; -webkit-font-smoothing:antialiased; }
+  input,select,button,textarea { font-family:inherit; }
 
-  /* SIDEBAR */
-  .sidebar {
-    width: 240px; min-height: 100vh; background: var(--primary);
-    border-right: none; display: flex; flex-direction: column;
-    position: fixed; top: 0; left: 0; z-index: 100;
-  }
-  .logo {
-    padding: 28px 22px 22px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    display: flex; align-items: center; gap: 10px;
-  }
-  .logo-mark {
-    width: 38px; height: 38px; border-radius: 9px;
-    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-  }
-  .logo-text {
-    display: flex; flex-direction: column; line-height: 1;
-  }
-  .logo-name {
-    font-family: var(--display); font-weight: 700; font-size: 1.05rem;
-    letter-spacing: -0.03em; color: #fff;
-  }
-  .logo-tagline {
-    font-size: 0.62rem; color: rgba(255,255,255,0.45); font-weight: 500;
-    letter-spacing: 0.05em; text-transform: uppercase; margin-top: 3px;
-  }
-  .nav { padding: 14px 12px; flex: 1; display: flex; flex-direction: column; gap: 1px; }
-  .nav-section-label {
-    font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.35);
-    letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 10px 5px; margin-top: 4px;
-  }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px; padding: 9px 10px;
-    border-radius: var(--radius-sm); cursor: pointer; font-size: 0.875rem; font-weight: 500;
-    color: rgba(255,255,255,0.6); transition: all 0.12s ease;
-    border: none; background: transparent;
-  }
-  .nav-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
-  .nav-item.active { color: #fff; background: rgba(255,255,255,0.12); font-weight: 600; }
-  .nav-item.active .nav-icon-wrap { background: var(--teal); }
-  .nav-icon-wrap {
-    width: 28px; height: 28px; border-radius: 7px; background: rgba(255,255,255,0.1);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: background 0.12s;
-  }
-  .nav-icon-wrap svg { width: 15px; height: 15px; stroke: rgba(255,255,255,0.75); fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
-  .nav-item.active .nav-icon-wrap svg { stroke: #fff; }
-  .sidebar-footer {
-    padding: 16px 22px; border-top: 1px solid rgba(255,255,255,0.1);
-    font-size: 0.72rem; color: rgba(255,255,255,0.35); font-family: var(--mono);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .sidebar-footer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
-
-  /* MAIN */
-  .main { margin-left: 240px; flex: 1; padding: 36px 40px; min-height: 100vh; max-width: calc(100vw - 240px); }
-  .page { display: none; }
-  .page.active { display: block; animation: fadeIn 0.18s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-  .page-header { margin-bottom: 28px; }
-  .page-title { font-family: var(--display); font-weight: 700; font-size: 1.75rem; letter-spacing: -0.04em; color: var(--text); margin-bottom: 3px; }
-  .page-sub { color: var(--muted); font-size: 0.875rem; font-weight: 400; }
-
-  /* CARDS */
-  .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 22px;
-    box-shadow: var(--shadow-sm);
-  }
-  .card-title {
-    font-size: 0.72rem; font-weight: 600; color: var(--muted);
-    letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 16px;
-  }
-
-  /* GRID */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-  .col-span-2 { grid-column: span 2; }
-
-  /* STAT CARDS */
-  .stat-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-sm);
-  }
-  .stat-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; margin-bottom: 10px; }
-  .stat-value { font-family: var(--display); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.05em; color: var(--text); line-height: 1; }
-  .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
-  .stat-accent { color: var(--text); }
-  .stat-icon { font-size: 1.4rem; margin-bottom: 10px; }
-
-  /* VOLT HIGHLIGHT */
-  .volt-pill {
-    display: inline-block; background: var(--teal); color: #fff;
-    font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
-    letter-spacing: 0.02em; margin-top: 6px;
-  }
-
-  /* ALERTS */
-  .alert { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); font-size: 0.84rem; margin-bottom: 8px; }
-  .alert-warn { background: var(--warning-bg); border: 1px solid var(--warning-border); color: #92520a; }
-  .alert-danger { background: var(--danger-bg); border: 1px solid var(--danger-border); color: #b91c1c; }
-  .alert-success { background: var(--success-bg); border: 1px solid var(--success-border); color: #166534; }
-
-  /* TABLES */
-  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-  th {
-    text-align: left; padding: 10px 16px; font-size: 0.7rem; color: var(--text-secondary);
-    font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
-    border-bottom: 1px solid var(--border); background: var(--surface2);
-  }
-  th:first-child { border-radius: 6px 0 0 0; }
-  th:last-child { border-radius: 0 6px 0 0; }
-  td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #f0f4f9; }
-
-  /* BADGES */
-  .badge {
-    display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px;
-    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.01em;
-  }
-  .badge-green { background: var(--success-bg); color: #166534; border: 1px solid var(--success-border); }
-  .badge-yellow { background: var(--warning-bg); color: #92520a; border: 1px solid var(--warning-border); }
-  .badge-red { background: var(--danger-bg); color: #b91c1c; border: 1px solid var(--danger-border); }
-  .badge-blue { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(30,58,95,0.18); }
-  .badge-teal { background: var(--teal-light); color: var(--teal-dark); border: 1px solid rgba(44,177,166,0.22); }
-  .badge-gray { background: var(--surface2); color: var(--text-secondary); border: 1px solid var(--border); }
+  /* NAV */
+  .nav { position:sticky; top:0; z-index:100; display:flex; align-items:center; height:60px; padding:0 28px; background:var(--bg-page); border-bottom:0.5px solid var(--border); }
+  .nav-logo { display:flex; align-items:center; gap:9px; font-size:15px; font-weight:600; letter-spacing:-0.3px; color:var(--text-primary); text-decoration:none; flex-shrink:0; }
+  .nav-logo-mark { width:26px; height:26px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .nav-links { position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:2px; background:var(--bg-card); border-radius:14px; padding:4px 5px; box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 0.5px rgba(0,0,0,0.07); }
+  .nav-pill { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:var(--r-btn); font-size:14px; font-weight:400; color:var(--text-muted); border:none; background:transparent; cursor:pointer; transition:color 0.15s,background 0.15s; white-space:nowrap; }
+  .nav-pill:hover { color:var(--text-primary); background:var(--bg-surface); }
+  .nav-pill.active { background:var(--text-primary); color:#fff; font-weight:500; }
+  .nav-pill svg { width:13px; height:13px; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .nav-right { margin-left:auto; display:flex; align-items:center; gap:7px; }
+  .nav-icon-btn { height:34px; width:34px; border-radius:var(--r-btn); border:none; background:var(--bg-card); box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 0.5px rgba(0,0,0,0.07); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background 0.15s; }
+  .nav-icon-btn:hover { background:var(--bg-surface); }
+  .nav-icon-btn svg { width:16px; height:16px; stroke:var(--text-secondary); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  .nav-avatar { height:34px; width:38px; border-radius:var(--r-btn); background:var(--bg-card); box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 0.5px rgba(0,0,0,0.07); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; overflow:hidden; position:relative; }
+  .nav-avatar::before { content:''; position:absolute; inset:3px; border-radius:7px; background:var(--grad); }
+  .nav-avatar span { position:relative; z-index:1; font-size:10px; font-weight:700; color:var(--text-primary); }
 
   /* BUTTONS */
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
-    border-radius: 980px; font-size: 0.875rem; font-weight: 600; cursor: pointer;
-    border: none; font-family: var(--sans); transition: all 0.12s ease;
-    letter-spacing: -0.01em; white-space: nowrap;
-  }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(30,58,95,0.28); }
-  .btn-teal { background: var(--teal); color: #fff; }
-  .btn-teal:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(44,177,166,0.35); }
-  .btn-volt { background: var(--teal); color: #fff; }
-  .btn-volt:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(44,177,166,0.35); }
-  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); }
-  .btn-secondary:hover { background: var(--surface2); border-color: var(--primary); color: var(--primary); }
-  .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
-  .btn-ghost:hover { color: var(--text); background: var(--surface2); }
-  .btn-danger { background: var(--danger-bg); color: #b91c1c; border: 1px solid var(--danger-border); }
-  .btn-danger:hover { background: rgba(239,68,68,0.14); }
-  .btn-sm { padding: 5px 13px; font-size: 0.8rem; }
-  .btn-xs { padding: 3px 10px; font-size: 0.74rem; border-radius: 999px; }
+  .btn-primary { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; border-radius:var(--r-btn); font-size:14px; font-weight:500; color:var(--text-primary); border:none; background:var(--grad); cursor:pointer; transition:opacity 0.15s,transform 0.1s; white-space:nowrap; }
+  .btn-primary:hover { opacity:0.88; }
+  .btn-primary:active { transform:scale(0.97); }
+  .btn-primary svg { width:14px; height:14px; flex-shrink:0; stroke:var(--text-primary); fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .btn-ghost { display:inline-flex; align-items:center; gap:7px; padding:8px 16px; border-radius:var(--r-btn); font-size:14px; font-weight:400; color:var(--text-secondary); border:0.5px solid var(--border-mid); background:var(--bg-card); cursor:pointer; transition:background 0.15s; white-space:nowrap; }
+  .btn-ghost:hover { background:var(--bg-surface); }
+  .btn-ghost svg { width:14px; height:14px; flex-shrink:0; stroke:var(--text-muted); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .btn-primary-sm { display:inline-flex; align-items:center; gap:5px; padding:6px 13px; border-radius:var(--r-btn); font-size:13px; font-weight:500; color:var(--text-primary); border:none; background:var(--grad); cursor:pointer; transition:opacity 0.15s; white-space:nowrap; }
+  .btn-primary-sm:hover { opacity:0.88; }
+  .btn-primary-sm svg { width:13px; height:13px; flex-shrink:0; stroke:var(--text-primary); fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .btn-ghost-sm { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:var(--r-btn); font-size:13px; font-weight:400; color:var(--text-secondary); border:0.5px solid var(--border-mid); background:var(--bg-card); cursor:pointer; transition:background 0.15s; white-space:nowrap; }
+  .btn-ghost-sm:hover { background:var(--bg-surface); }
+  .btn-ghost-sm svg { width:13px; height:13px; flex-shrink:0; stroke:var(--text-muted); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .btn-danger-sm { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:var(--r-btn); font-size:13px; font-weight:400; color:#A32D2D; border:0.5px solid rgba(163,45,45,0.2); background:#FCEBEB; cursor:pointer; transition:background 0.15s; white-space:nowrap; }
+  .btn-danger-sm:hover { background:rgba(163,45,45,0.12); }
+
+  /* TAGS */
+  .tag { display:inline-flex; align-items:center; gap:3px; font-size:12px; font-weight:500; padding:3px 9px; border-radius:var(--r-pill); }
+  .tag-ok    { background:#EAF3DE; color:#3B6D11; }
+  .tag-warn  { background:#FAEEDA; color:#633806; }
+  .tag-low   { background:#FCEBEB; color:#A32D2D; }
+  .tag-blue  { background:#E6F1FB; color:#185FA5; }
+  .tag-green { background:#E1F5EE; color:#0F6E56; }
+  .tag-gray  { background:var(--bg-surface); color:var(--text-muted); border:0.5px solid var(--border-mid); }
+
+  /* CARDS */
+  .card { background:var(--bg-card); border:0.5px solid var(--border); border-radius:var(--r-card); overflow:hidden; }
+  .card-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 13px; border-bottom:0.5px solid rgba(0,0,0,0.06); }
+  .card-title { font-size:15px; font-weight:600; color:var(--text-primary); }
+  .card-subtitle { font-size:13px; color:var(--text-muted); margin-top:2px; }
 
   /* INPUTS */
-  input, select {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text); padding: 9px 13px;
-    font-size: 0.875rem; font-family: var(--sans); width: 100%;
-    transition: border-color 0.12s, box-shadow 0.12s; outline: none;
-    -webkit-appearance: none; appearance: none;
-  }
-  input:focus, select:focus {
-    border-color: var(--teal); background: var(--surface);
-    box-shadow: 0 0 0 3px rgba(44,177,166,0.15);
-  }
-  input::placeholder { color: var(--muted); }
-  label {
-    display: block; font-size: 0.78rem; color: var(--text-secondary);
-    font-weight: 500; margin-bottom: 6px;
-  }
-  .form-group { margin-bottom: 16px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  input[type=text],input[type=email],input[type=password],input[type=number],input[type=tel],input[type=date],select,textarea { width:100%; padding:9px 13px; background:var(--bg-surface); border:0.5px solid var(--border-mid); border-radius:var(--r-sm); color:var(--text-primary); font-size:14px; outline:none; transition:border-color 0.15s,box-shadow 0.15s; -webkit-appearance:none; appearance:none; }
+  input:focus,select:focus { border-color:#ACCEEA; box-shadow:0 0 0 3px rgba(172,206,234,0.25); background:var(--bg-card); }
+  input::placeholder { color:var(--text-hint); }
+  input:disabled { opacity:0.5; cursor:not-allowed; }
+  label { display:block; font-size:12px; font-weight:500; color:var(--text-muted); margin-bottom:5px; letter-spacing:0.2px; }
+  .form-group { margin-bottom:14px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
-  /* PROGRESS BAR */
-  .progress-bar { height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-top: 10px; }
-  .progress-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+  /* LAYOUT */
+  .main { padding:24px 28px 60px; }
+  .page { display:none; }
+  .page.active { display:block; animation:fadeIn 0.18s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);} }
+  .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .page-title { font-size:28px; font-weight:600; letter-spacing:-0.6px; color:var(--text-primary); }
+  .page-sub { font-size:13px; color:var(--text-muted); margin-top:2px; }
+  .page-actions { display:flex; align-items:center; gap:8px; }
 
-  /* DIVIDER */
-  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  /* TABLES */
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { text-align:left; padding:9px 18px; font-size:11px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-muted); border-bottom:0.5px solid rgba(0,0,0,0.07); background:var(--bg-page); }
+  td { padding:12px 18px; border-bottom:0.5px solid rgba(0,0,0,0.05); color:var(--text-secondary); }
+  tr:last-child td { border-bottom:none; }
+  tbody tr:hover td { background:var(--bg-page); }
 
-  /* SECTION SPACING */
-  .section { margin-bottom: 18px; }
+  /* MISC */
+  .divider { border:none; border-top:0.5px solid rgba(0,0,0,0.07); margin:16px 0; }
+  .section { margin-bottom:16px; }
+  .progress-bar { height:4px; background:var(--bg-surface); border-radius:2px; overflow:hidden; margin-top:8px; }
+  .progress-fill { height:100%; border-radius:2px; transition:width 0.5s ease; }
+  .mono { font-family:var(--mono); }
 
   /* MODAL */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(31,41,51,0.35); backdrop-filter: blur(6px);
-    z-index: 200; align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 18px; padding: 28px; width: 480px; max-width: 95vw;
-    box-shadow: 0 20px 60px rgba(30,58,95,0.18), 0 4px 16px rgba(30,58,95,0.1);
-    animation: modalIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
-  .modal-title { font-family: var(--display); font-weight: 700; font-size: 1.15rem; letter-spacing: -0.03em; margin-bottom: 20px; color: var(--text); }
-  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
-
-  /* CHIP */
-  .chip { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
-
-  /* ORDER ITEM */
-  .order-item {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); margin-bottom: 8px; transition: background 0.1s;
-  }
-  .order-item:hover { background: var(--primary-light); border-color: rgba(30,58,95,0.2); }
-  .order-item-name { font-weight: 600; font-size: 0.9rem; }
-  .order-item-detail { font-size: 0.75rem; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
-  .order-qty {
-    font-family: var(--display); font-weight: 700; font-size: 1.35rem;
-    letter-spacing: -0.04em; color: #fff; min-width: 52px; text-align: center;
-    background: var(--teal); border-radius: 8px; padding: 3px 12px;
-  }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(1,1,1,0.3); backdrop-filter:blur(6px); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--bg-card); border:0.5px solid var(--border); border-radius:18px; padding:26px; width:460px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.14); animation:modalIn 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.95) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);} }
+  .modal-title { font-size:17px; font-weight:600; letter-spacing:-0.3px; margin-bottom:18px; color:var(--text-primary); }
+  .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:0.5px solid rgba(0,0,0,0.07); }
 
   /* TOAST */
-  .toast {
-    position: fixed; bottom: 28px; right: 28px; background: var(--primary);
-    color: #fff; padding: 12px 20px; border-radius: 999px;
-    font-size: 0.84rem; font-weight: 500; z-index: 999; display: none;
-    animation: slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    box-shadow: 0 8px 24px rgba(30,58,95,0.3);
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--text-primary); color:#fff; padding:10px 18px; border-radius:var(--r-pill); font-size:13px; font-weight:500; z-index:999; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.18); }
+
+  /* TOGGLE */
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
+  .toggle-row+.toggle-row { border-top:0.5px solid rgba(0,0,0,0.06); }
+  .toggle-label { font-size:14px; font-weight:400; color:var(--text-secondary); }
+  .toggle { width:38px; height:21px; border-radius:999px; cursor:pointer; position:relative; transition:background 0.2s; flex-shrink:0; border:none; padding:0; }
+  .toggle-knob { position:absolute; top:3px; width:15px; height:15px; border-radius:50%; background:#fff; transition:left 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+
+  /* ORDER ITEMS */
+  .order-item { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--bg-surface); border:0.5px solid var(--border-mid); border-radius:var(--r-sm); margin-bottom:7px; }
+  .order-item:hover { background:#ECEAE2; }
+  .order-item-name { font-weight:600; font-size:14px; color:var(--text-primary); }
+  .order-item-detail { font-size:12px; color:var(--text-muted); font-family:var(--mono); margin-top:2px; }
+  .order-qty { font-weight:700; font-size:1.2rem; color:var(--text-primary); min-width:44px; text-align:center; background:var(--grad); border-radius:8px; padding:3px 12px; }
+
+  /* STEPS */
+  .steps { display:flex; align-items:center; margin-bottom:24px; }
+  .step { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--text-muted); font-weight:400; }
+  .step.active { color:var(--text-primary); font-weight:600; }
+  .step.done { color:var(--text-secondary); }
+  .step-num { width:21px; height:21px; border-radius:50%; border:1.5px solid var(--border-mid); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; flex-shrink:0; }
+  .step.active .step-num { background:var(--text-primary); color:#fff; border-color:var(--text-primary); }
+  .step.done .step-num { background:var(--text-primary); color:#fff; border-color:var(--text-primary); }
+  .step-line { flex:1; height:0.5px; background:var(--border-mid); margin:0 10px; min-width:20px; }
+
+  /* MAP ENTRY */
+  .map-entry { background:var(--bg-card); border:0.5px solid var(--border); border-radius:var(--r-card); padding:16px; margin-bottom:10px; }
+  .map-entry-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .map-item-row { display:grid; grid-template-columns:1fr 80px 32px; gap:8px; align-items:center; }
+
+  /* STAT GRID */
+  .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-bottom:22px; padding:6px 0 16px; border-bottom:0.5px solid rgba(0,0,0,0.07); }
+  .stat-card { background:transparent; border:none; padding:6px 24px 6px 0; border-right:0.5px solid rgba(0,0,0,0.08); }
+  .stat-card:last-child { border-right:none; padding-right:0; }
+  .stat-card:not(:first-child) { padding-left:24px; }
+  .stat-label { font-size:12px; color:var(--text-muted); margin-bottom:5px; }
+  .stat-value { font-size:32px; font-weight:600; letter-spacing:-1px; color:var(--text-primary); line-height:1.1; margin-bottom:8px; }
+  .stat-delta { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; padding:3px 8px; border-radius:6px; }
+  .stat-delta.up   { background:#EAF3DE; color:#3B6D11; }
+  .stat-delta.warn { background:#FAEEDA; color:#633806; }
+  .stat-delta.down { background:#FCEBEB; color:#A32D2D; }
+
+  /* PILL TABS */
+  .pill-tabs { display:flex; gap:2px; background:var(--bg-surface); border-radius:12px; padding:3px; }
+  .pill-tab { padding:5px 13px; border-radius:var(--r-btn); font-size:13px; font-weight:400; color:var(--text-muted); border:none; background:transparent; cursor:pointer; transition:all 0.15s; }
+  .pill-tab.active { background:var(--bg-card); color:var(--text-primary); font-weight:500; }
+
+  /* PMS */
+  .pms-status-row { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:12px 14px; background:var(--bg-surface); border:0.5px solid var(--border-mid); border-radius:var(--r-sm); margin-bottom:14px; }
+
+  /* LOGIN */
+  .login-page { position:fixed; inset:0; z-index:1000; display:flex; align-items:stretch; background:var(--bg-page); overflow-y:auto; }
+  .login-left { width:52%; background:var(--text-primary); display:flex; flex-direction:column; justify-content:center; padding:64px 56px; position:relative; overflow:hidden; flex-shrink:0; }
+  .login-left::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 20% 50%,rgba(172,206,234,0.22) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(255,146,112,0.14) 0%,transparent 50%); pointer-events:none; }
+  .login-brand { display:flex; align-items:center; gap:12px; margin-bottom:48px; }
+  .login-brand-mark { width:36px; height:36px; border-radius:10px; background:var(--grad); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .login-brand-name { font-weight:700; font-size:1.2rem; letter-spacing:-0.04em; color:#fff; }
+  .login-brand-tag { font-size:0.65rem; color:rgba(255,255,255,0.45); font-weight:500; letter-spacing:0.06em; text-transform:uppercase; margin-top:2px; }
+  .login-headline { font-weight:700; font-size:2.2rem; line-height:1.15; letter-spacing:-0.04em; color:#fff; margin-bottom:16px; max-width:400px; }
+  .login-headline span { background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .login-desc { font-size:0.95rem; color:rgba(255,255,255,0.55); line-height:1.65; max-width:380px; margin-bottom:40px; }
+  .login-features { display:flex; flex-direction:column; gap:12px; }
+  .login-feature { display:flex; align-items:flex-start; gap:11px; font-size:0.875rem; color:rgba(255,255,255,0.78); line-height:1.5; }
+  .login-feature-check { width:19px; height:19px; border-radius:50%; background:var(--grad); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .login-feature-check svg { width:9px; height:9px; stroke:var(--text-primary); fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+  .login-right { flex:1; display:flex; align-items:center; justify-content:center; padding:48px; }
+  .login-card { width:100%; max-width:380px; }
+  .login-card-title { font-weight:700; font-size:1.6rem; letter-spacing:-0.04em; color:var(--text-primary); margin-bottom:5px; }
+  .login-card-sub { font-size:0.875rem; color:var(--text-muted); margin-bottom:32px; }
+  .login-field { margin-bottom:16px; }
+  .login-field label { font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px; display:block; }
+  .login-field input { width:100%; padding:11px 14px; border-radius:var(--r-btn); border:0.5px solid var(--border-mid); background:var(--bg-surface); font-size:14px; color:var(--text-primary); outline:none; transition:border-color 0.15s,box-shadow 0.15s; -webkit-appearance:none; }
+  .login-field input:focus { border-color:#ACCEEA; box-shadow:0 0 0 3px rgba(172,206,234,0.25); background:var(--bg-card); }
+  .login-field input::placeholder { color:var(--text-hint); }
+  .login-btn { width:100%; padding:12px; border-radius:var(--r-btn); background:var(--text-primary); color:#fff; border:none; font-size:14px; font-weight:600; cursor:pointer; transition:opacity 0.15s; margin-top:6px; }
+  .login-btn:hover { opacity:0.85; }
+  .login-footer-note { text-align:center; margin-top:20px; font-size:12px; color:var(--text-hint); }
+  .login-divider { display:flex; align-items:center; gap:12px; margin:20px 0; }
+  .login-divider-line { flex:1; height:0.5px; background:var(--border-mid); }
+  .login-divider-text { font-size:12px; color:var(--text-muted); font-weight:500; }
+  .login-demo-btn { width:100%; padding:10px; border-radius:var(--r-btn); background:transparent; color:var(--text-secondary); border:0.5px solid var(--border-mid); font-size:14px; font-weight:500; cursor:pointer; transition:background 0.15s; }
+  .login-demo-btn:hover { background:var(--bg-surface); }
+
+  /* MOBILE */
+  .mobile-header { display:none; position:fixed; top:0; left:0; right:0; z-index:200; background:var(--text-primary); padding:0 16px; height:54px; align-items:center; justify-content:space-between; }
+  .mobile-header-name { font-weight:600; font-size:15px; color:#fff; }
+  .mobile-menu-btn { width:34px; height:34px; border-radius:var(--r-sm); background:rgba(255,255,255,0.1); border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+  .mobile-menu-btn span { display:block; width:16px; height:1.5px; background:#fff; border-radius:2px; }
+  .mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:149; backdrop-filter:blur(2px); }
+  .mobile-overlay.open { display:block; }
+
+  @media(max-width:768px) {
+    body { display:block; }
+    .mobile-header { display:flex; }
+    #app-shell { display:block !important; padding-top:54px; }
+    .sidebar { position:fixed; top:0; left:0; width:260px; height:100vh; background:var(--text-primary); z-index:150; transform:translateX(-100%); transition:transform 0.25s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column; padding:20px 14px; }
+    .sidebar.open { transform:translateX(0); }
+    .sidebar-nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:var(--r-btn); cursor:pointer; font-size:14px; font-weight:400; color:rgba(255,255,255,0.6); border:none; background:transparent; width:100%; text-align:left; transition:all 0.12s; margin-bottom:2px; }
+    .sidebar-nav-item:hover { color:#fff; background:rgba(255,255,255,0.08); }
+    .sidebar-nav-item.active { color:#fff; background:rgba(255,255,255,0.12); font-weight:500; }
+    .sidebar-nav-item svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+    .main { padding:20px 16px 80px; }
+    .stat-grid { grid-template-columns:1fr 1fr; }
+    .form-row { grid-template-columns:1fr; }
+    .modal-overlay { align-items:flex-end; }
+    .modal { width:100%; max-width:100%; border-radius:18px 18px 0 0; padding:22px 18px 30px; max-height:88vh; overflow-y:auto; }
+    .modal-actions { flex-direction:column-reverse; }
+    .modal-actions .btn-primary,.modal-actions .btn-ghost { width:100%; justify-content:center; }
+    .page-header { flex-direction:column; align-items:flex-start; gap:10px; }
+    .page-actions { width:100%; }
+    .nav-links { display:none; }
   }
-  @keyframes slideUp { from { opacity:0; transform:translateY(12px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
-
-  /* STEP INDICATOR */
-  .steps { display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
-  .step { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); font-weight: 500; }
-  .step.active { color: var(--primary); font-weight: 600; }
-  .step.done { color: var(--text-secondary); }
-  .step-num {
-    width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border-strong);
-    display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 600;
-  }
-  .step.active .step-num { background: var(--teal); color: #fff; border-color: var(--teal); }
-  .step.done .step-num { background: var(--primary); color: #fff; border-color: var(--primary); font-size: 0.6rem; }
-  .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 10px; min-width: 20px; }
-
-  /* MAPPING ENTRY */
-  .map-entry { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow-sm); }
-  .map-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .map-items { display: flex; flex-direction: column; gap: 7px; }
-  .map-item-row { display: grid; grid-template-columns: 1fr 80px 32px; gap: 8px; align-items: center; }
-
-  /* STAT ICON WRAP */
-  .stat-icon-wrap {
-    width: 36px; height: 36px; border-radius: 10px; background: var(--primary-light);
-    display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
-  }
-  .stat-icon-wrap svg { width: 18px; height: 18px; stroke: var(--primary); fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
-
-  /* CARD TITLE ICON */
-  .card-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-  .card-title-row svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-  .card-title { font-size: 0.72rem; font-weight: 600; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0; }
-
-  /* LOGIN PAGE */
-  .login-page {
-    position: fixed; inset: 0; z-index: 1000;
-    display: flex; align-items: stretch;
-    background: var(--bg);
-    overflow-y: auto;
-  }
-  .login-left {
-    width: 52%; background: var(--primary);
-    display: flex; flex-direction: column;
-    justify-content: center; padding: 72px 64px;
-    position: relative; overflow: hidden;
-    flex-shrink: 0;
-  }
-  .login-left::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 20% 50%, rgba(44,177,166,0.18) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 20%, rgba(44,177,166,0.1) 0%, transparent 50%);
-    pointer-events: none;
-  }
-  .login-brand {
-    display: flex; align-items: center; gap: 14px; margin-bottom: 56px;
-  }
-  .login-brand-mark {
-    width: 48px; height: 48px; border-radius: 12px; background: var(--teal);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .login-brand-name {
-    font-family: var(--display); font-weight: 700; font-size: 1.4rem;
-    letter-spacing: -0.04em; color: #fff;
-  }
-  .login-brand-tag {
-    font-size: 0.7rem; color: rgba(255,255,255,0.45); font-weight: 500;
-    letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px;
-  }
-  .login-headline {
-    font-family: var(--display); font-weight: 700; font-size: 2.4rem;
-    line-height: 1.15; letter-spacing: -0.04em; color: #fff; margin-bottom: 20px;
-    max-width: 420px;
-  }
-  .login-headline span { color: var(--teal); }
-  .login-desc {
-    font-size: 1rem; color: rgba(255,255,255,0.6); line-height: 1.65;
-    max-width: 400px; margin-bottom: 44px; font-weight: 400;
-  }
-  .login-features { display: flex; flex-direction: column; gap: 14px; }
-  .login-feature {
-    display: flex; align-items: flex-start; gap: 12px;
-    font-size: 0.9rem; color: rgba(255,255,255,0.82); font-weight: 400; line-height: 1.5;
-  }
-  .login-feature-check {
-    width: 20px; height: 20px; border-radius: 50%; background: var(--teal);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
-  }
-  .login-feature-check svg { width: 10px; height: 10px; stroke: #fff; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-  .login-right {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-    padding: 48px 48px;
-  }
-  .login-card {
-    width: 100%; max-width: 400px;
-  }
-  .login-card-title {
-    font-family: var(--display); font-weight: 700; font-size: 1.75rem;
-    letter-spacing: -0.04em; color: var(--text); margin-bottom: 6px;
-  }
-  .login-card-sub {
-    font-size: 0.875rem; color: var(--muted); margin-bottom: 36px;
-  }
-  .login-field { margin-bottom: 18px; }
-  .login-field label {
-    font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);
-    margin-bottom: 7px; display: block; letter-spacing: 0;
-  }
-  .login-field input {
-    width: 100%; padding: 11px 14px; border-radius: 10px;
-    border: 1.5px solid var(--border); background: var(--surface);
-    font-size: 0.95rem; color: var(--text); font-family: var(--sans);
-    outline: none; transition: border-color 0.12s, box-shadow 0.12s;
-  }
-  .login-field input:focus {
-    border-color: var(--teal);
-    box-shadow: 0 0 0 3px rgba(44,177,166,0.15);
-  }
-  .login-field input::placeholder { color: var(--muted); }
-  .login-btn {
-    width: 100%; padding: 13px; border-radius: 10px;
-    background: var(--primary); color: #fff; border: none;
-    font-size: 0.95rem; font-weight: 600; font-family: var(--sans);
-    cursor: pointer; transition: all 0.12s; letter-spacing: -0.01em;
-    margin-top: 8px;
-  }
-  .login-btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(30,58,95,0.25); }
-  .login-footer-note {
-    text-align: center; margin-top: 24px; font-size: 0.78rem; color: var(--muted);
-  }
-  .login-divider {
-    display: flex; align-items: center; gap: 12px; margin: 24px 0;
-  }
-  .login-divider-line { flex: 1; height: 1px; background: var(--border); }
-  .login-divider-text { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
-  .login-demo-btn {
-    width: 100%; padding: 11px; border-radius: 10px;
-    background: transparent; color: var(--text-secondary);
-    border: 1.5px solid var(--border); font-size: 0.9rem; font-weight: 500;
-    font-family: var(--sans); cursor: pointer; transition: all 0.12s;
-  }
-  .login-demo-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
-  .login-hidden { display: none !important; }
-  .flex { display: flex; }
-  .gap-2 { gap: 8px; }
-  .gap-3 { gap: 12px; }
-  .items-center { align-items: center; }
-  .justify-between { justify-content: space-between; }
-  .mb-3 { margin-bottom: 12px; }
-  .mb-4 { margin-bottom: 16px; }
-  .mt-3 { margin-top: 12px; }
-  .text-right { text-align: right; }
-  .w-full { width: 100%; }
-  .text-muted { color: var(--muted); font-size: 0.84rem; }
-  /* ── MOBILE NAV TOGGLE ───────────────────────────────── */
-  .mobile-header {
-    display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-    background: var(--primary); padding: 0 16px;
-    height: 56px; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .mobile-header-brand { display: flex; align-items: center; gap: 10px; }
-  .mobile-header-name { font-family: var(--display); font-weight: 700; font-size: 1rem; letter-spacing: -0.03em; color: #fff; }
-  .mobile-menu-btn {
-    width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.1);
-    border: none; cursor: pointer; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 5px; flex-shrink: 0;
-  }
-  .mobile-menu-btn span { display: block; width: 18px; height: 1.5px; background: #fff; border-radius: 2px; transition: all 0.2s; }
-  .mobile-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-    z-index: 149; backdrop-filter: blur(2px);
-  }
-  .mobile-overlay.open { display: block; }
-
-  /* ── TABLET (769px – 1024px) ─────────────────────────── */
-  @media (min-width: 769px) and (max-width: 1024px) {
-
-    /* Collapse sidebar to 64px icon-only rail */
-    .sidebar { width: 64px; }
-    .logo { padding: 16px 0; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .logo-text { display: none; }
-    .logo-mark { width: 36px; height: 36px; }
-
-    .nav { padding: 12px 8px; gap: 2px; }
-    .nav-section-label { display: none; }
-    .nav-item { padding: 10px; justify-content: center; border-radius: 10px; }
-    .nav-item span:not(.nav-icon-wrap) { display: none; }
-    /* Hide text nodes in nav items */
-    .nav-item { font-size: 0; }
-    .nav-icon-wrap { width: 32px; height: 32px; flex-shrink: 0; }
-    .nav-icon-wrap svg { width: 16px; height: 16px; }
-
-    .sidebar-footer { padding: 12px 8px; justify-content: center; }
-    .sidebar-footer-dot { width: 7px; height: 7px; }
-    /* Hide footer text */
-    .sidebar-footer { font-size: 0; }
-    .sidebar-footer-dot { display: block; }
-
-    /* Main shifts right by rail width */
-    .main { margin-left: 64px; padding: 28px 24px; max-width: calc(100vw - 64px); }
-
-    /* Grids: 4-col → 2-col, 3-col → 2-col, 2-col stays 2-col */
-    .grid-4 { grid-template-columns: 1fr 1fr; gap: 14px; }
-    .grid-3 { grid-template-columns: 1fr 1fr; gap: 14px; }
-
-    /* Page title */
-    .page-title { font-size: 1.5rem; }
-
-    /* Tables scroll on tight layouts */
-    .card { overflow-x: auto; }
-    table { min-width: 480px; }
-    .map-entry { overflow-x: auto; }
-
-    /* Login: side by side, left panel scrolls if needed */
-    .login-page { align-items: stretch; }
-    .login-left {
-      width: 44%;
-      padding: 40px 36px;
-      overflow-y: auto;
-      justify-content: flex-start;
-    }
-    .login-brand { margin-bottom: 32px; }
-    .login-headline { font-size: 1.75rem; margin-bottom: 14px; }
-    .login-desc { font-size: 0.875rem; margin-bottom: 28px; }
-    .login-feature { font-size: 0.875rem; }
-    .login-right { overflow-y: auto; }
-
-    /* Stat value a touch smaller */
-    .stat-value { font-size: 1.9rem; }
-
-    /* Order items stay horizontal */
-    .order-item { flex-wrap: nowrap; }
-  }
-
-  /* ── MOBILE (≤768px) ─────────────────────────────────── */
-  @media (max-width: 768px) {
-    body { display: block; }
-
-    /* Mobile header visible */
-    .mobile-header { display: flex; }
-
-    /* App shell stacks vertically */
-    #app-shell { display: block !important; padding-top: 56px; }
-
-    /* Sidebar becomes a slide-in drawer */
-    .sidebar {
-      width: 260px; transform: translateX(-100%);
-      transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
-      z-index: 150; top: 0;
-    }
-    .sidebar.open { transform: translateX(0); }
-
-    /* Main takes full width */
-    .main { margin-left: 0; padding: 20px 16px 100px; max-width: 100vw; }
-
-    /* Grids collapse to 1 col */
-    .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; gap: 12px; }
-
-    /* Page headers stack */
-    .page-header.flex { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .page-header.flex .btn { width: 100%; justify-content: center; }
-
-    /* Tables: horizontal scroll */
-    .card { padding: 16px; overflow-x: auto; }
-    table { min-width: 520px; }
-
-    /* Order items wrap on mobile */
-    .order-item { flex-wrap: wrap; gap: 10px; }
-    .order-item > div:first-child { width: 100%; }
-
-    /* Steps compress */
-    .steps { flex-wrap: wrap; gap: 8px; }
-    .step-line { display: none; }
-
-    /* Page title smaller */
-    .page-title { font-size: 1.35rem; }
-
-    /* Stat cards 2-col on mobile */
-    .grid-4 { grid-template-columns: 1fr 1fr; }
-
-    /* Map entry table scroll */
-    .map-entry { overflow-x: auto; }
-
-    /* Modals full-screen on mobile */
-    .modal-overlay { align-items: flex-end; }
-    .modal {
-      width: 100%; max-width: 100%; border-radius: 18px 18px 0 0;
-      padding: 24px 20px 32px; max-height: 90vh; overflow-y: auto;
-    }
-    .modal-actions { flex-direction: column-reverse; }
-    .modal-actions .btn { width: 100%; justify-content: center; }
-
-    /* Form rows stack */
-    .form-row { grid-template-columns: 1fr; }
-
-    /* Order panel action rows */
-    #order-panel-suggested > div:last-child { flex-wrap: wrap; gap: 10px; }
-    #order-panel-suggested > div:last-child .flex { width: 100%; }
-    #order-panel-suggested > div:last-child .btn { flex: 1; justify-content: center; }
-
-    /* Login page: single scrollable column */
-    .login-page {
-      flex-direction: column;
-      overflow-y: auto;
-      min-height: 100vh;
-      height: auto;
-      position: relative;
-    }
-    .login-left {
-      width: 100%;
-      padding: 32px 24px 32px;
-      min-height: auto;
-      height: auto;
-      justify-content: flex-start;
-      flex-shrink: 0;
-    }
-    .login-brand { margin-bottom: 20px; }
-    .login-brand-mark { width: 40px; height: 40px; }
-    .login-brand-name { font-size: 1.2rem; }
-    .login-headline { font-size: 1.5rem; margin-bottom: 10px; max-width: 100%; }
-    .login-desc { font-size: 0.875rem; margin-bottom: 20px; max-width: 100%; }
-    .login-features { gap: 10px; }
-    .login-feature { font-size: 0.875rem; gap: 10px; }
-    .login-feature-check { width: 18px; height: 18px; flex-shrink: 0; }
-    .login-right {
-      padding: 28px 24px 48px;
-      flex-shrink: 0;
-    }
-    .login-card { max-width: 100%; }
-    .login-card-title { font-size: 1.4rem; }
-    .login-btn { padding: 14px; font-size: 1rem; }
-    .login-demo-btn { padding: 13px; font-size: 0.9rem; }
-  }
-
-  @media (max-width: 420px) {
-    .grid-4 { grid-template-columns: 1fr; }
-    .main { padding: 16px 12px 100px; }
-    .stat-value { font-size: 1.8rem; }
-    .btn { font-size: 0.82rem; padding: 8px 14px; }
-    .btn-sm { padding: 5px 10px; font-size: 0.76rem; }
+  @media(max-width:480px) {
+    .stat-grid { grid-template-columns:1fr; gap:12px; border:none; padding:0; }
+    .stat-card { border-right:none; border-bottom:0.5px solid rgba(0,0,0,0.08); padding:10px 0; }
+    .stat-card:last-child { border-bottom:none; }
   }
 </style>
 </head>
 <body>
 
-<!-- MOBILE HEADER (hidden on desktop) -->
+<!-- Mobile -->
 <div class="mobile-header" id="mobile-header" style="display:none;">
-  <div class="mobile-header-brand">
-    <svg width="28" height="28" viewBox="0 0 38 38" fill="none">
-      <rect width="38" height="38" rx="9" fill="#2CB1A6"/>
-      <text x="19" y="27" font-family="Figtree, -apple-system, sans-serif" font-size="24" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-1">S</text>
-    </svg>
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg width="22" height="22" viewBox="0 0 14 14" fill="none"><path d="M2 12L7 2L12 12" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 2L11.5 10.5" stroke="#FF9270" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="2" r="1.6" fill="#fff"/></svg>
     <span class="mobile-header-name">SupplySync</span>
   </div>
-  <button class="mobile-menu-btn" onclick="toggleMobileNav()" id="mobile-menu-btn">
-    <span></span><span></span><span></span>
-  </button>
+  <button class="mobile-menu-btn" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
 </div>
 <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileNav()"></div>
+<div class="sidebar" id="app-sidebar" style="display:none;">
+  <div style="display:flex;align-items:center;gap:9px;padding:8px 12px 20px;">
+    <svg width="22" height="22" viewBox="0 0 14 14" fill="none"><path d="M2 12L7 2L12 12" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 2L11.5 10.5" stroke="#FF9270" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="2" r="1.6" fill="#fff"/></svg>
+    <span style="font-weight:600;color:#fff;font-size:15px;">SupplySync</span>
+  </div>
+  <button class="sidebar-nav-item" onclick="navigate('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+  <button class="sidebar-nav-item" onclick="navigate('appointments')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Appointments</button>
+  <button class="sidebar-nav-item" onclick="navigate('procedures')"><svg viewBox="0 0 24 24"><path d="M4 2h16a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M7 9h10M7 13h6"/></svg>Procedure Maps</button>
+  <button class="sidebar-nav-item" onclick="navigate('inventory')"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Inventory</button>
+  <button class="sidebar-nav-item" onclick="navigate('suppliers')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Suppliers</button>
+  <button class="sidebar-nav-item" onclick="navigate('order')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>Generate Order</button>
+  <div style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
+    <button class="sidebar-nav-item" onclick="navigate('profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</button>
+    <button class="sidebar-nav-item" onclick="navigate('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</button>
+  </div>
+</div>
 
-<!-- LOGIN PAGE -->
+<!-- LOGIN -->
 <div id="login-page" class="login-page">
-  <!-- Left: Branding & value props -->
   <div class="login-left">
     <div class="login-brand">
-      <div class="login-brand-mark">
-        <svg width="28" height="28" viewBox="0 0 38 38" fill="none">
-          <text x="19" y="27" font-family="Figtree, -apple-system, sans-serif" font-size="24" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-1">S</text>
-        </svg>
-      </div>
-      <div>
-        <div class="login-brand-name">SupplySync</div>
-        <div class="login-brand-tag">Orthodontics</div>
-      </div>
+      <div class="login-brand-mark"><svg width="20" height="20" viewBox="0 0 14 14" fill="none"><path d="M2 12L7 2L12 12" stroke="#010101" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="2" r="1.6" fill="#010101"/></svg></div>
+      <div><div class="login-brand-name">SupplySync</div><div class="login-brand-tag">Orthodontics</div></div>
     </div>
-
     <div class="login-headline">Smart supply ordering for <span>orthodontic</span> practices.</div>
     <p class="login-desc">SupplySync connects your appointment schedule directly to your supply ordering process.</p>
-
     <div class="login-features">
-      <div class="login-feature">
-        <div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <span>Automatically generates order lists based on scheduled procedures</span>
-      </div>
-      <div class="login-feature">
-        <div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <span>Reduces over-ordering and stockouts</span>
-      </div>
-      <div class="login-feature">
-        <div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <span>Eliminates manual tracking and guesswork</span>
-      </div>
+      <div class="login-feature"><div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span>Auto-generates order lists based on scheduled procedures</span></div>
+      <div class="login-feature"><div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span>Reduces over-ordering and stockouts</span></div>
+      <div class="login-feature"><div class="login-feature-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span>Eliminates manual tracking and guesswork</span></div>
     </div>
   </div>
-
-  <!-- Right: Login form -->
   <div class="login-right">
     <div class="login-card">
       <div class="login-card-title">Welcome back</div>
       <div class="login-card-sub">Sign in to your SupplySync account</div>
-
-      <div class="login-field">
-        <label>Email address</label>
-        <input type="email" placeholder="you@practice.com" id="login-email"/>
-      </div>
-      <div class="login-field">
-        <label>Password</label>
-        <input type="password" placeholder="••••••••" id="login-password"/>
-      </div>
-
+      <div class="login-field"><label>Email address</label><input type="email" placeholder="you@practice.com" id="login-email"/></div>
+      <div class="login-field"><label>Password</label><input type="password" placeholder="••••••••" id="login-password"/></div>
       <button class="login-btn" onclick="doLogin()">Sign In</button>
-
-      <div class="login-divider">
-        <div class="login-divider-line"></div>
-        <div class="login-divider-text">or</div>
-        <div class="login-divider-line"></div>
-      </div>
-
+      <div class="login-divider"><div class="login-divider-line"></div><div class="login-divider-text">or</div><div class="login-divider-line"></div></div>
       <button class="login-demo-btn" onclick="doLogin()">Continue with Demo Account</button>
-
       <div class="login-footer-note">By signing in you agree to our Terms of Service and Privacy Policy.</div>
     </div>
   </div>
 </div>
 
 <!-- APP SHELL -->
-<div id="app-shell" style="display:flex;width:100%;min-height:100vh;">
-
-<!-- SIDEBAR -->
-<aside class="sidebar" id="app-sidebar">
-  <div class="logo">
-    <div class="logo-mark">
-      <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
-        <rect width="38" height="38" rx="9" fill="#2CB1A6"/>
-        <text x="19" y="27" font-family="Figtree, -apple-system, BlinkMacSystemFont, sans-serif" font-size="24" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-1">S</text>
-      </svg>
-    </div>
-    <div class="logo-text">
-      <div class="logo-name">SupplySync</div>
-      <div class="logo-tagline">Orthodontics</div>
-    </div>
-  </div>
+<div id="app-shell" style="display:none;min-height:100vh;">
   <nav class="nav">
-    <div class="nav-section-label">Workspace</div>
-    <div class="nav-item active" onclick="navigate('dashboard')">
-      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
-      Dashboard
+    <a class="nav-logo" href="#">
+      <div class="nav-logo-mark"><svg width="22" height="22" viewBox="0 0 14 14" fill="none"><path d="M2 12L7 2L12 12" stroke="#010101" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 2L11.5 10.5" stroke="#FF9270" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="2" r="1.6" fill="#010101"/></svg></div>
+      SupplySync
+    </a>
+    <div class="nav-links">
+      <button class="nav-pill active" data-page="dashboard"><svg viewBox="0 0 16 16"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.2"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.2"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.2"/><rect x="9" y="9" width="5.5" height="5.5" rx="1.2"/></svg>Overview</button>
+      <button class="nav-pill" data-page="appointments"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 7h12M5.5 1v3M10.5 1v3"/></svg>Appointments</button>
+      <button class="nav-pill" data-page="procedures"><svg viewBox="0 0 16 16"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M5.5 6h5M5.5 9h3"/></svg>Procedures</button>
+      <button class="nav-pill" data-page="inventory"><svg viewBox="0 0 16 16"><path d="M3 4h10M3 4v8a1 1 0 001 1h8a1 1 0 001-1V4M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1"/></svg>Inventory</button>
+      <button class="nav-pill" data-page="suppliers"><svg viewBox="0 0 16 16"><path d="M2 6l6-4 6 4v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6z"/><path d="M6 13V9h4v4"/></svg>Suppliers</button>
+      <button class="nav-pill" data-page="order"><svg viewBox="0 0 16 16"><circle cx="6" cy="13.5" r="1"/><circle cx="12.5" cy="13.5" r="1"/><path d="M1 1h2.5l1.7 8.5h7l1.8-5H5"/></svg>Order</button>
     </div>
-    <div class="nav-item" onclick="navigate('appointments')">
-      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-      Appointments
-    </div>
-    <div class="nav-item" onclick="navigate('procedures')">
-      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
-      Procedure Maps
-    </div>
-    <div class="nav-section-label">Supply</div>
-    <div class="nav-item" onclick="navigate('inventory')">
-      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
-      Inventory
-    </div>
-    <div class="nav-item" onclick="navigate('order')">
-      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
-      Generate Order
+    <div class="nav-right">
+      <div class="nav-icon-btn"><svg viewBox="0 0 16 16"><path d="M8 2.5a3.5 3.5 0 00-3.5 3.5v3L3 11h10l-1.5-2V6A3.5 3.5 0 008 2.5z"/><path d="M6.5 12.5a1.5 1.5 0 003 0"/></svg></div>
+      <div class="nav-icon-btn" onclick="navigate('settings')" title="Settings"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/></svg></div>
+      <div class="nav-avatar" onclick="navigate('profile')"><span>DR</span></div>
     </div>
   </nav>
-  <div class="sidebar-footer"><div class="sidebar-footer-dot"></div>MVP v1.0</div>
-</aside>
 
-<!-- MAIN CONTENT -->
-<main class="main">
+  <main class="main">
 
-  <!-- DASHBOARD -->
-  <div id="page-dashboard" class="page active">
-    <div class="page-header">
-      <div class="page-title">Dashboard</div>
-      <div class="page-sub">Next 14 days · Valley Orthodontics</div>
+    <!-- OVERVIEW -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text-hint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5.5L6 1l5 4.5V11a.5.5 0 01-.5.5H8V8H4v3.5H1.5A.5.5 0 011 11V5.5z"/></svg>
+            Workspace
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text-hint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2l4 4-4 4"/></svg>
+            <strong style="color:var(--text-primary);font-weight:500;">Overview</strong>
+          </div>
+          <div class="page-title">Practice Overview</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn-ghost"><svg viewBox="0 0 14 14"><rect x="1" y="2.5" width="12" height="10" rx="1.5"/><path d="M1 6.5h12M4.5 1v3M9.5 1v3"/></svg>Apr 2026</button>
+          <button class="btn-ghost"><svg viewBox="0 0 14 14"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M2 11v1a1 1 0 001 1h8a1 1 0 001-1v-1"/></svg>Export</button>
+          <button class="btn-primary" onclick="navigate('order')"><svg viewBox="0 0 14 14"><path d="M7 1v12M1 7h12"/></svg>New Order</button>
+        </div>
+      </div>
+      <!-- Status banner -->
+      <div id="dash-status-banner" style="display:flex;align-items:center;gap:12px;padding:10px 18px;border-radius:12px;background:var(--bg-card);border:0.5px solid var(--border);font-size:14px;color:var(--text-secondary);margin-bottom:20px;">
+        <div style="width:7px;height:7px;border-radius:50%;background:#BA7517;flex-shrink:0;"></div>
+        <span id="dash-banner-text"></span>
+        <button onclick="document.getElementById('dash-status-banner').style.display='none'" style="margin-left:auto;width:24px;height:24px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <svg width="10" height="10" viewBox="0 0 11 11" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"><path d="M1.5 1.5l8 8M9.5 1.5l-8 8"/></svg>
+        </button>
+      </div>
+      <!-- KPIs -->
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Total Inventory Items</div><div class="stat-value" id="dash-inv-total">0</div><span class="stat-delta up">items tracked</span></div>
+        <div class="stat-card"><div class="stat-label">Pending Orders</div><div class="stat-value" id="dash-order-count">0</div><span class="stat-delta warn">items to reorder</span></div>
+        <div class="stat-card"><div class="stat-label">Upcoming Appointments</div><div class="stat-value" id="dash-appts">0</div><span class="stat-delta up">next 14 days</span></div>
+        <div class="stat-card"><div class="stat-label">Reorder Alerts</div><div class="stat-value" id="dash-alerts">0</div><span class="stat-delta down">reorder needed</span></div>
+      </div>
+      <!-- Main grid -->
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;margin-bottom:16px;">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Inventory — Critical Items</div><div class="card-subtitle">Items needing your attention</div></div>
+            <div class="pill-tabs"><button class="pill-tab active">All</button><button class="pill-tab">Low Stock</button><button class="pill-tab">Ordered</button></div>
+          </div>
+          <div id="dash-demand-table"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Alerts</div><div class="card-subtitle">Requires your attention</div></div><span class="tag tag-low" id="dash-alert-count-tag">0 new</span></div>
+            <div id="dash-alert-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Today's Appointments</div><div class="card-subtitle" id="dash-today-date"></div></div><button class="btn-ghost-sm" onclick="navigate('appointments')"><svg viewBox="0 0 12 12"><path d="M2 6h8M7 3l3 3-3 3"/></svg>View all</button></div>
+            <div id="dash-appt-list"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Bottom grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Orders Pipeline</div><div class="card-subtitle">Active supply orders</div></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-ghost-sm"><svg viewBox="0 0 12 12"><path d="M1 2.5h10l-3.5 4.5V11L4.5 9.5V7L1 2.5z"/></svg>Filter</button>
+              <button class="btn-primary-sm" onclick="navigate('order')"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10"/></svg>New Order</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);padding:0 6px 16px;">
+            <div style="padding:0 10px;border-right:0.5px solid rgba(0,0,0,0.06);">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 8px;color:var(--text-muted);">
+                <div style="width:6px;height:6px;border-radius:50%;background:#E24B4A;flex-shrink:0;"></div>Pending
+                <span style="margin-left:auto;font-size:12px;font-weight:500;" id="pipeline-pending-amt"></span>
+              </div>
+              <div id="pipeline-pending"></div>
+            </div>
+            <div style="padding:0 10px;border-right:0.5px solid rgba(0,0,0,0.06);">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 8px;color:var(--text-muted);">
+                <div style="width:6px;height:6px;border-radius:50%;background:#EF9F27;flex-shrink:0;"></div>Processing
+                <span style="margin-left:auto;font-size:12px;font-weight:500;">$890</span>
+              </div>
+              <div style="background:var(--bg-page);border-radius:10px;padding:10px 12px;margin-bottom:8px;"><div style="font-size:12px;font-weight:700;color:var(--text-primary);">ORD-0082</div><div style="font-size:13px;color:var(--text-secondary);margin:3px 0;">Composite Resin A2 ×30</div><div style="font-size:12px;color:var(--text-hint);">Kerr · 2 days ago</div></div>
+            </div>
+            <div style="padding:0 10px;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 8px;color:var(--text-muted);">
+                <div style="width:6px;height:6px;border-radius:50%;background:#1D9E75;flex-shrink:0;"></div>Delivered
+                <span style="margin-left:auto;font-size:12px;font-weight:500;">$2,140</span>
+              </div>
+              <div style="background:var(--bg-page);border-radius:10px;padding:10px 12px;margin-bottom:8px;"><div style="font-size:12px;font-weight:700;color:var(--text-primary);">ORD-0078</div><div style="font-size:13px;color:var(--text-secondary);margin:3px 0;">Archwires Ni-Ti ×100 pk</div><div style="font-size:12px;color:var(--text-hint);">3M Unitek · Mon</div></div>
+              <div style="background:var(--bg-page);border-radius:10px;padding:10px 12px;margin-bottom:8px;"><div style="font-size:12px;font-weight:700;color:var(--text-primary);">ORD-0076</div><div style="font-size:13px;color:var(--text-secondary);margin:3px 0;">Gloves (M) ×10 boxes</div><div style="font-size:12px;color:var(--text-hint);">McKesson · Fri</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Procedure Maps</div><div class="card-subtitle">Supply usage by procedure</div></div>
+            <button class="btn-ghost-sm" onclick="navigate('procedures')"><svg viewBox="0 0 12 12"><path d="M1 3h10M1 9h10"/><circle cx="4" cy="3" r="1.5" fill="var(--bg-card)"/><circle cx="8" cy="9" r="1.5" fill="var(--bg-card)"/></svg>Manage</button>
+          </div>
+          <div id="dash-proc-list"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="grid-4 section">
-      <div class="stat-card">
-        <div class="stat-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div class="stat-label">Upcoming Appts</div>
-        <div class="stat-value" id="dash-appts">0</div>
-        <div class="stat-sub">next 14 days</div>
+    <!-- APPOINTMENTS -->
+    <div id="page-appointments" class="page">
+      <div class="page-header">
+        <div><div class="page-title">Appointments</div><div class="page-sub">Manage upcoming patient schedule</div></div>
+        <div class="page-actions"><button class="btn-primary" onclick="openModal('appt-modal')"><svg viewBox="0 0 14 14"><path d="M7 1v12M1 7h12"/></svg>Add Appointment</button></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon-wrap"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-        <div class="stat-label">Items Needed</div>
-        <div class="stat-value" id="dash-items">0</div>
-        <div class="stat-sub">total supply units</div>
+      <div class="card"><table><thead><tr><th>Date</th><th>Procedure Type</th><th>Location</th><th>Status</th><th></th></tr></thead><tbody id="appt-table-body"></tbody></table></div>
+    </div>
+
+    <!-- PROCEDURES -->
+    <div id="page-procedures" class="page">
+      <div class="page-header">
+        <div><div class="page-title">Procedure Maps</div><div class="page-sub">Define which supplies each procedure requires</div></div>
+        <div class="page-actions"><button class="btn-primary" onclick="openModal('proc-modal')"><svg viewBox="0 0 14 14"><path d="M7 1v12M1 7h12"/></svg>Add Mapping</button></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon-wrap" style="background:rgba(245,158,11,0.1)"><svg viewBox="0 0 24 24" style="stroke:var(--warning)"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-        <div class="stat-label">Low Stock Alerts</div>
-        <div class="stat-value" id="dash-alerts">0</div>
-        <div class="stat-sub">below threshold</div>
+      <div id="proc-list"></div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div id="page-inventory" class="page">
+      <div class="page-header">
+        <div><div class="page-title">Inventory</div><div class="page-sub">Track current supply levels and reorder points</div></div>
+        <div class="page-actions"><button class="btn-primary" onclick="openModal('inv-modal')"><svg viewBox="0 0 14 14"><path d="M7 1v12M1 7h12"/></svg>Add Item</button></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon-wrap" style="background:var(--teal-light)"><svg viewBox="0 0 24 24" style="stroke:var(--teal)"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
-        <div class="stat-label">Order Ready</div>
-        <div class="stat-value" id="dash-order-count">0</div>
-        <div class="stat-sub">items to reorder</div>
+      <div class="card"><table><thead><tr><th>Item Name</th><th>SKU</th><th>Current Qty</th><th>Reorder Point</th><th>Supplier</th><th>Status</th><th></th></tr></thead><tbody id="inv-table-body"></tbody></table></div>
+    </div>
+
+    <!-- SUPPLIERS -->
+    <div id="page-suppliers" class="page">
+      <div class="page-header">
+        <div><div class="page-title">Suppliers</div><div class="page-sub">Manage vendor contacts and account numbers</div></div>
+        <div class="page-actions"><button class="btn-primary" onclick="openModal('supplier-modal')"><svg viewBox="0 0 14 14"><path d="M7 1v12M1 7h12"/></svg>Add Supplier</button></div>
+      </div>
+      <div class="card"><table><thead><tr><th>Supplier</th><th>Contact</th><th>Account #</th><th>Status</th><th></th></tr></thead><tbody id="suppliers-table-body"></tbody></table></div>
+    </div>
+
+    <!-- ORDER -->
+    <div id="page-order" class="page">
+      <div class="page-header"><div><div class="page-title">Generate Order</div><div class="page-sub">Suggested purchase quantities based on schedule + inventory</div></div></div>
+      <div class="steps">
+        <div class="step done"><div class="step-num"><svg style="width:9px;height:9px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Schedule</div>
+        <div class="step-line"></div>
+        <div class="step done"><div class="step-num"><svg style="width:9px;height:9px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Mappings</div>
+        <div class="step-line"></div>
+        <div class="step done"><div class="step-num"><svg style="width:9px;height:9px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Inventory</div>
+        <div class="step-line"></div>
+        <div class="step active"><div class="step-num">4</div>Order</div>
+      </div>
+      <div id="order-panel-demand" class="card section">
+        <div class="card-header"><div class="card-title">Demand Calculation</div></div>
+        <div style="padding:16px 20px;"><div id="demand-calc"></div></div>
+        <div style="padding:0 20px 16px;display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="showOrderPanel('suggested')">Next <svg viewBox="0 0 14 14"><path d="M5 2l5 5-5 5"/></svg></button></div>
+      </div>
+      <div id="order-panel-suggested" class="card section" style="display:none;">
+        <div class="card-header">
+          <div class="card-title">Suggested Order</div>
+          <button class="btn-primary-sm" onclick="openModal('order-item-modal')"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10"/></svg>Add Item</button>
+        </div>
+        <div style="padding:16px 20px;"><div id="order-list"></div><div id="order-low-stock" style="display:none;margin-top:16px;padding-top:16px;border-top:0.5px solid rgba(0,0,0,0.07);"></div></div>
+        <div style="padding:14px 20px 16px;display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid rgba(0,0,0,0.07);">
+          <button class="btn-ghost" onclick="showOrderPanel('demand')"><svg viewBox="0 0 14 14"><path d="M9 2L4 7l5 5"/></svg>Back</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-primary" onclick="exportCSV()"><svg viewBox="0 0 14 14"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M2 11v1a1 1 0 001 1h8a1 1 0 001-1v-1"/></svg>Export CSV</button>
+            <button class="btn-ghost" onclick="copyOrder()"><svg viewBox="0 0 14 14"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 9H2a1 1 0 01-1-1V2a1 1 0 011-1h6a1 1 0 011 1v1"/></svg>Copy</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="grid-2 section">
+    <!-- PROFILE -->
+    <div id="page-profile" class="page">
+      <div class="page-header"><div><div class="page-title">Profile</div><div class="page-sub">Manage your account information</div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;align-items:start;">
+        <div class="card" style="padding:20px;">
+          <div class="card-title" style="margin-bottom:16px;">Personal Information</div>
+          <div class="form-group"><label>Full Name</label><input type="text" value="Dr. Sarah Mitchell"/></div>
+          <div class="form-group"><label>Email Address</label><input type="email" value="s.mitchell@valleyortho.com"/></div>
+          <div class="form-group"><label>Phone</label><input type="tel" value="(801) 555-0192"/></div>
+          <div class="form-group"><label>Role</label><input type="text" value="Practice Owner" disabled/></div>
+          <div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="showToast('Profile saved')">Save Changes</button></div>
+        </div>
+        <div class="card" style="padding:20px;">
+          <div class="card-title" style="margin-bottom:16px;">Password</div>
+          <div class="form-group"><label>Current Password</label><input type="password" placeholder="••••••••"/></div>
+          <div class="form-group"><label>New Password</label><input type="password" placeholder="••••••••"/></div>
+          <div class="form-group"><label>Confirm New Password</label><input type="password" placeholder="••••••••"/></div>
+          <div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="showToast('Password updated')">Update Password</button></div>
+        </div>
+      </div>
       <div class="card">
-        <div class="card-title-row">
-          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <div class="card-title">Low Stock Alerts</div>
+        <div class="card-header">
+          <div><div class="card-title">Practice Locations</div><div class="card-subtitle">All registered locations</div></div>
+          <button class="btn-primary-sm" onclick="openModal('location-modal')"><svg viewBox="0 0 12 12"><path d="M6 1v10M1 6h10"/></svg>Add Location</button>
         </div>
-        <div id="dash-alert-list"></div>
+        <table><thead><tr><th>Practice Name</th><th>Address</th><th>Phone</th><th></th></tr></thead><tbody id="locations-table-body"></tbody></table>
       </div>
-      <div class="card">
-        <div class="card-title-row">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <div class="card-title">Upcoming Appointments</div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="page-settings" class="page">
+      <div class="page-header"><div><div class="page-title">Settings</div><div class="page-sub">Configure SupplySync for your practice</div></div></div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card" style="padding:20px;">
+          <div class="card-title" style="margin-bottom:16px;">Order Generation</div>
+          <div class="form-row">
+            <div class="form-group"><label>Forecast Window (days)</label><input type="number" value="14" min="1" max="90"/></div>
+            <div class="form-group"><label>Default Buffer %</label><input type="number" value="10" min="0" max="100"/></div>
+          </div>
+          <div class="form-group"><label>Default Export Format</label><select><option>CSV</option><option>PDF</option><option>Plain Text</option></select></div>
+          <div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="showToast('Order settings saved')">Save</button></div>
         </div>
-        <div id="dash-appt-list"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title-row">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        <div class="card-title">Supply Demand vs. Inventory</div>
-      </div>
-      <div id="dash-demand-table"></div>
-      <hr class="divider"/>
-      <button class="btn btn-teal" onclick="navigate('order')">
-        <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
-        Generate Order
-      </button>
-    </div>
-  </div>
-
-  <!-- APPOINTMENTS -->
-  <div id="page-appointments" class="page">
-    <div class="page-header flex justify-between items-center">
-      <div>
-        <div class="page-title">Appointments</div>
-        <div class="page-sub">Manage upcoming patient schedule</div>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('appt-modal')">
-        <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Appointment
-      </button>
-    </div>
-    <div class="card">
-      <table>
-        <thead>
-          <tr><th>Date</th><th>Procedure Type</th><th>Location</th><th>Status</th><th></th></tr>
-        </thead>
-        <tbody id="appt-table-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- PROCEDURES -->
-  <div id="page-procedures" class="page">
-    <div class="page-header flex justify-between items-center">
-      <div>
-        <div class="page-title">Procedure Maps</div>
-        <div class="page-sub">Define which supplies each procedure requires</div>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('proc-modal')">
-        <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Mapping
-      </button>
-    </div>
-    <div id="proc-list"></div>
-  </div>
-
-  <!-- INVENTORY -->
-  <div id="page-inventory" class="page">
-    <div class="page-header flex justify-between items-center">
-      <div>
-        <div class="page-title">Inventory</div>
-        <div class="page-sub">Track current supply levels and thresholds</div>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('inv-modal')">
-        <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Item
-      </button>
-    </div>
-    <div class="card">
-      <table>
-        <thead>
-          <tr><th>Item Name</th><th>SKU</th><th>Current Qty</th><th>Threshold</th><th>Supplier</th><th>Status</th><th></th></tr>
-        </thead>
-        <tbody id="inv-table-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ORDER -->
-  <div id="page-order" class="page">
-    <div class="page-header">
-      <div class="page-title">Generate Order</div>
-      <div class="page-sub">Suggested purchase quantities based on schedule + inventory</div>
-    </div>
-
-    <div class="steps">
-      <div class="step done"><div class="step-num"><svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div> Schedule</div>
-      <div class="step-line"></div>
-      <div class="step done"><div class="step-num"><svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div> Mappings</div>
-      <div class="step-line"></div>
-      <div class="step done"><div class="step-num"><svg style="width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div> Inventory</div>
-      <div class="step-line"></div>
-      <div class="step active"><div class="step-num">4</div> Order</div>
-    </div>
-
-    <!-- Demand Calculation panel -->
-    <div id="order-panel-demand" class="card section">
-      <div class="card-title-row">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        <div class="card-title">Demand Calculation</div>
-      </div>
-      <div id="demand-calc"></div>
-      <hr class="divider"/>
-      <div style="display:flex;justify-content:flex-end;">
-        <button class="btn btn-primary" onclick="showOrderPanel('suggested')">
-          Next
-          <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Suggested Order panel (hidden initially) -->
-    <div id="order-panel-suggested" class="card section" style="display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div class="card-title-row" style="margin-bottom:0;">
-          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-          <div class="card-title" style="margin-bottom:0;">Suggested Order</div>
+        <div class="card" style="padding:20px;">
+          <div class="card-title" style="margin-bottom:14px;">Notifications</div>
+          <div id="notification-toggles"></div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openModal('order-item-modal')">
-          <svg style="width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Item
-        </button>
-      </div>
-      <div id="order-list"></div>
-      <div id="order-low-stock" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);"></div>
-      <hr class="divider"/>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <button class="btn btn-ghost" onclick="showOrderPanel('demand')">
-          <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          Back
-        </button>
-        <div class="flex gap-2">
-          <button class="btn btn-teal" onclick="exportCSV()">
-            <svg style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Export CSV
-          </button>
-          <button class="btn btn-secondary" onclick="copyOrder()">
-            <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            Copy to Clipboard
-          </button>
+        <div class="card" style="padding:20px;">
+          <div class="card-title" style="margin-bottom:14px;">PMS Integration</div>
+          <div id="pms-section"></div>
         </div>
       </div>
     </div>
-  </div>
 
-</main>
-
-</div><!-- end app-shell -->
+  </main>
+</div>
 
 <!-- MODALS -->
 <div class="modal-overlay" id="appt-modal">
@@ -941,24 +541,12 @@
     <div class="modal-title">Add Appointment</div>
     <div class="form-row">
       <div class="form-group"><label>Date</label><input type="date" id="appt-date"/></div>
-      <div class="form-group"><label>Procedure Type</label>
-        <select id="appt-proc">
-          <option value="">Select...</option>
-          <option>New Bonding</option>
-          <option>Adjustment</option>
-          <option>Debond</option>
-          <option>Emergency Visit</option>
-        </select>
-      </div>
+      <div class="form-group"><label>Procedure Type</label><select id="appt-proc"><option value="">Select...</option><option>New Bonding</option><option>Adjustment</option><option>Debond</option><option>Emergency Visit</option></select></div>
     </div>
     <div class="form-group"><label>Location</label><input type="text" id="appt-loc" placeholder="Main Office"/></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('appt-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addAppointment()">Add Appointment</button>
-    </div>
+    <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('appt-modal')">Cancel</button><button class="btn-primary" onclick="addAppointment()">Add Appointment</button></div>
   </div>
 </div>
-
 <div class="modal-overlay" id="inv-modal">
   <div class="modal">
     <div class="modal-title">Add Inventory Item</div>
@@ -969,65 +557,53 @@
     </div>
     <div class="form-row">
       <div class="form-group"><label>Current Quantity</label><input type="number" id="inv-qty" min="0" placeholder="0"/></div>
-      <div class="form-group"><label>Reorder Threshold</label><input type="number" id="inv-thresh" min="0" placeholder="20"/></div>
+      <div class="form-group"><label>Reorder Point</label><input type="number" id="inv-thresh" min="0" placeholder="20"/></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('inv-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addInventoryItem()">Add to Inventory</button>
-    </div>
+    <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('inv-modal')">Cancel</button><button class="btn-primary" onclick="addInventoryItem()">Add to Inventory</button></div>
   </div>
 </div>
-
 <div class="modal-overlay" id="proc-modal">
   <div class="modal">
     <div class="modal-title">Add Procedure Mapping</div>
-    <div class="form-group">
-      <label>Procedure Name</label>
-      <select id="proc-name" onchange="handleProcNameChange()">
-        <option value="">Select procedure...</option>
-      </select>
-    </div>
-    <div class="form-group" id="proc-new-name-group" style="display:none;">
-      <label>New Procedure Name</label>
-      <input type="text" id="proc-new-name" placeholder="e.g. Retainer Check"/>
-    </div>
-    <div style="font-size:0.75rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Supply Items</div>
+    <div class="form-group"><label>Procedure Name</label><select id="proc-name" onchange="handleProcNameChange()"><option value="">Select procedure...</option></select></div>
+    <div class="form-group" id="proc-new-name-group" style="display:none;"><label>New Procedure Name</label><input type="text" id="proc-new-name" placeholder="e.g. Retainer Check"/></div>
+    <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Supply Items</div>
     <div id="proc-supply-rows"></div>
-    <button class="btn btn-secondary btn-sm mt-3" onclick="addSupplyRow()">+ Add Supply Item</button>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('proc-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveProcMapping()">Save Mapping</button>
-    </div>
+    <button class="btn-ghost-sm" style="margin-top:10px;" onclick="addSupplyRow()">+ Add Supply Item</button>
+    <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('proc-modal')">Cancel</button><button class="btn-primary" onclick="saveProcMapping()">Save Mapping</button></div>
   </div>
 </div>
-
 <div class="modal-overlay" id="order-item-modal">
   <div class="modal">
     <div class="modal-title">Add Item to Order</div>
-    <div class="form-group">
-      <label>Item</label>
-      <select id="order-item-select" onchange="handleOrderItemSelect()">
-        <option value="">Select from inventory...</option>
-      </select>
-    </div>
-    <div class="form-group" id="order-item-custom-group" style="display:none;">
-      <label>Custom Item Name</label>
-      <input type="text" id="order-item-custom-name" placeholder="e.g. Ligature Ties"/>
-    </div>
+    <div class="form-group"><label>Item</label><select id="order-item-select" onchange="handleOrderItemSelect()"><option value="">Select from inventory...</option></select></div>
+    <div class="form-group" id="order-item-custom-group" style="display:none;"><label>Custom Item Name</label><input type="text" id="order-item-custom-name" placeholder="e.g. Ligature Ties"/></div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Quantity</label>
-        <input type="number" id="order-item-qty" min="1" value="1"/>
-      </div>
-      <div class="form-group">
-        <label>Supplier</label>
-        <input type="text" id="order-item-supplier" placeholder="e.g. Henry Schein"/>
-      </div>
+      <div class="form-group"><label>Quantity</label><input type="number" id="order-item-qty" min="1" value="1"/></div>
+      <div class="form-group"><label>Supplier</label><input type="text" id="order-item-supplier" placeholder="e.g. Henry Schein"/></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('order-item-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addOrderItem()">Add to Order</button>
+    <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('order-item-modal')">Cancel</button><button class="btn-primary" onclick="addOrderItem()">Add to Order</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="supplier-modal">
+  <div class="modal">
+    <div class="modal-title">Add Supplier</div>
+    <div class="form-group"><label>Supplier Name</label><input type="text" id="sup-name" placeholder="e.g. Henry Schein"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>Contact Email</label><input type="email" id="sup-email" placeholder="orders@supplier.com"/></div>
+      <div class="form-group"><label>Account #</label><input type="text" id="sup-account" placeholder="e.g. HS-88421"/></div>
     </div>
+    <div class="form-group"><label>Status</label><select id="sup-status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+    <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('supplier-modal')">Cancel</button><button class="btn-primary" onclick="addSupplier()">Add Supplier</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="location-modal">
+  <div class="modal">
+    <div class="modal-title">Add Location</div>
+    <div class="form-group"><label>Practice Name</label><input type="text" id="loc-name" placeholder="e.g. Valley Orthodontics - Provo"/></div>
+    <div class="form-group"><label>Address</label><input type="text" id="loc-address" placeholder="123 Main St, Salt Lake City, UT 84101"/></div>
+    <div class="form-group"><label>Phone</label><input type="tel" id="loc-phone" placeholder="(801) 555-0100"/></div>
+    <div class="modal-actions"><button class="btn-ghost" onclick="closeModal('location-modal')">Cancel</button><button class="btn-primary" onclick="addLocation()">Add Location</button></div>
   </div>
 </div>
 
@@ -1037,213 +613,403 @@
 // ─── STATE ───────────────────────────────────────────────
 const state = {
   appointments: [
-    { id:1, date:'2026-03-24', procedure:'New Bonding', location:'Main Office' },
-    { id:2, date:'2026-03-24', procedure:'New Bonding', location:'Main Office' },
-    { id:3, date:'2026-03-25', procedure:'Adjustment', location:'Main Office' },
-    { id:4, date:'2026-03-25', procedure:'Adjustment', location:'North Branch' },
-    { id:5, date:'2026-03-26', procedure:'Adjustment', location:'Main Office' },
-    { id:6, date:'2026-03-26', procedure:'New Bonding', location:'Main Office' },
-    { id:7, date:'2026-03-27', procedure:'Debond', location:'Main Office' },
-    { id:8, date:'2026-03-28', procedure:'Adjustment', location:'North Branch' },
-    { id:9, date:'2026-03-28', procedure:'Emergency Visit', location:'Main Office' },
-    { id:10, date:'2026-03-31', procedure:'New Bonding', location:'Main Office' },
-    { id:11, date:'2026-04-01', procedure:'Adjustment', location:'Main Office' },
-    { id:12, date:'2026-04-02', procedure:'Adjustment', location:'North Branch' },
+    {id:1,date:'2026-03-24',procedure:'New Bonding',location:'Main Office'},
+    {id:2,date:'2026-03-24',procedure:'New Bonding',location:'Main Office'},
+    {id:3,date:'2026-03-25',procedure:'Adjustment',location:'Main Office'},
+    {id:4,date:'2026-03-25',procedure:'Adjustment',location:'North Branch'},
+    {id:5,date:'2026-03-26',procedure:'Adjustment',location:'Main Office'},
+    {id:6,date:'2026-03-26',procedure:'New Bonding',location:'Main Office'},
+    {id:7,date:'2026-03-27',procedure:'Debond',location:'Main Office'},
+    {id:8,date:'2026-03-28',procedure:'Adjustment',location:'North Branch'},
+    {id:9,date:'2026-03-28',procedure:'Emergency Visit',location:'Main Office'},
+    {id:10,date:'2026-03-31',procedure:'New Bonding',location:'Main Office'},
+    {id:11,date:'2026-04-01',procedure:'Adjustment',location:'Main Office'},
+    {id:12,date:'2026-04-02',procedure:'Adjustment',location:'North Branch'}
   ],
   inventory: [
-    { id:1, name:'Brackets MBT 0.022', sku:'BRK-001', qty:40, threshold:30, supplier:'Henry Schein' },
-    { id:2, name:'Adhesive Paste', sku:'ADH-002', qty:8, threshold:10, supplier:'Ormco' },
-    { id:3, name:'Archwire NiTi 016', sku:'AWR-003', qty:5, threshold:15, supplier:'3M Unitek' },
-    { id:4, name:'Elastics 3/16"', sku:'ELS-004', qty:120, threshold:50, supplier:'Henry Schein' },
-    { id:5, name:'Debond Kit', sku:'DBK-005', qty:3, threshold:5, supplier:'Ormco' },
-    { id:6, name:'Cheek Retractors', sku:'CRT-006', qty:25, threshold:10, supplier:'Patterson' },
+    {id:1,name:'Brackets MBT 0.022',sku:'BRK-001',qty:40,threshold:30,supplier:'Henry Schein'},
+    {id:2,name:'Adhesive Paste',sku:'ADH-002',qty:8,threshold:10,supplier:'Ormco'},
+    {id:3,name:'Archwire NiTi 016',sku:'AWR-003',qty:5,threshold:15,supplier:'3M Unitek'},
+    {id:4,name:'Elastics 3/16"',sku:'ELS-004',qty:120,threshold:50,supplier:'Henry Schein'},
+    {id:5,name:'Debond Kit',sku:'DBK-005',qty:3,threshold:5,supplier:'Ormco'},
+    {id:6,name:'Cheek Retractors',sku:'CRT-006',qty:25,threshold:10,supplier:'Patterson'},
+    {id:7,name:'FX3 PSL Bracket',sku:'FX3-001',qty:8,threshold:20,supplier:'Smile Stream Solutions'}
   ],
   procedures: [
-    { name:'New Bonding', supplies:[{item:'Brackets MBT 0.022', qty:20},{item:'Adhesive Paste', qty:1},{item:'Cheek Retractors', qty:1}] },
-    { name:'Adjustment', supplies:[{item:'Archwire NiTi 016', qty:1},{item:'Elastics 3/16"', qty:2}] },
-    { name:'Debond', supplies:[{item:'Debond Kit', qty:1}] },
-    { name:'Emergency Visit', supplies:[{item:'Archwire NiTi 016', qty:1}] },
+    {name:'New Bonding',supplies:[{item:'Brackets MBT 0.022',qty:20},{item:'Adhesive Paste',qty:1},{item:'Cheek Retractors',qty:1}]},
+    {name:'Adjustment',supplies:[{item:'Archwire NiTi 016',qty:1},{item:'Elastics 3/16"',qty:2}]},
+    {name:'Debond',supplies:[{item:'Debond Kit',qty:1}]},
+    {name:'Emergency Visit',supplies:[{item:'Archwire NiTi 016',qty:1}]}
   ],
-  nextApptId: 13,
-  nextInvId: 7,
+  suppliers: [
+    {id:1,name:'Henry Schein',email:'orders@henryschein.com',account:'HS-88421',status:'active'},
+    {id:2,name:'Ormco',email:'supply@ormco.com',account:'ORM-3341',status:'active'},
+    {id:3,name:'3M Unitek',email:'orders@3m.com',account:'3MU-9902',status:'active'},
+    {id:4,name:'Patterson',email:'dental@patterson.com',account:'PAT-5571',status:'inactive'},
+    {id:5,name:'Smile Stream Solutions',email:'orders@smilestream.com',account:'SSS-1001',status:'active'}
+  ],
+  nextSupplierId:6,
+  locations: [
+    {id:1,name:'Valley Orthodontics',address:'1200 E 3900 S, Salt Lake City, UT 84124',phone:'(801) 555-0192'},
+    {id:2,name:'Valley Orthodontics - North Branch',address:'450 N Main St, Bountiful, UT 84010',phone:'(801) 555-0374'}
+  ],
+  notifications: [
+    {label:'Low stock alerts',on:true},
+    {label:'Weekly order reminder',on:true},
+    {label:'New appointment added',on:false}
+  ],
+  pms: {
+    system:'Dolphin Imaging',
+    endpoint:'https://api.dolphinimaging.com/v2/connect',
+    apiKey:'sk_live_3f9a',
+    status:'connected',
+    lastSync:'2026-03-29T09:14:00Z'
+  },
+  nextApptId:13,   nextInvId:8, nextSupplierId:5, nextLocationId:3
 };
 
 // ─── NAVIGATION ──────────────────────────────────────────
 function navigate(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
   document.getElementById('page-' + page).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => {
-    const txt = n.textContent.toLowerCase();
-    if(
-      (page === 'dashboard' && txt.includes('dashboard')) ||
-      (page === 'appointments' && txt.includes('appointment')) ||
-      (page === 'procedures' && txt.includes('procedure')) ||
-      (page === 'inventory' && txt.includes('inventory')) ||
-      (page === 'order' && txt.includes('generate'))
-    ) n.classList.add('active');
+  document.querySelectorAll('.nav-pill[data-page]').forEach(function(n) {
+    n.classList.toggle('active', n.dataset.page === page);
+  });
+  document.querySelectorAll('.sidebar-nav-item').forEach(function(n) {
+    var txt = n.textContent.toLowerCase();
+    var match = (page === 'dashboard' && txt.includes('overview')) ||
+                (page === 'appointments' && txt.includes('appointment')) ||
+                (page === 'procedures' && txt.includes('procedure')) ||
+                (page === 'inventory' && txt.includes('inventory')) ||
+                (page === 'suppliers' && txt.includes('supplier')) ||
+                (page === 'order' && txt.includes('order')) ||
+                (page === 'profile' && txt.includes('profile')) ||
+                (page === 'settings' && txt.includes('settings'));
+    n.classList.toggle('active', match);
   });
   closeMobileNav();
   render(page);
 }
 
-// ─── RENDER ──────────────────────────────────────────────
 function render(page) {
-  if(page === 'dashboard') renderDashboard();
-  else if(page === 'appointments') renderAppointments();
-  else if(page === 'procedures') renderProcedures();
-  else if(page === 'inventory') renderInventory();
-  else if(page === 'order') renderOrder();
+  if (page === 'dashboard') renderDashboard();
+  else if (page === 'appointments') renderAppointments();
+  else if (page === 'procedures') renderProcedures();
+  else if (page === 'inventory') renderInventory();
+  else if (page === 'suppliers') renderSuppliers();
+  else if (page === 'order') renderOrder();
+  else if (page === 'profile') renderProfile();
+  else if (page === 'settings') renderSettings();
 }
 
+// ─── CALC ─────────────────────────────────────────────────
 function calcDemand() {
-  const demand = {};
-  state.appointments.forEach(appt => {
-    const proc = state.procedures.find(p => p.name === appt.procedure);
-    if(!proc) return;
-    proc.supplies.forEach(s => {
-      demand[s.item] = (demand[s.item] || 0) + s.qty;
-    });
+  var demand = {};
+  state.appointments.forEach(function(a) {
+    var proc = state.procedures.find(function(p) { return p.name === a.procedure; });
+    if (!proc) return;
+    proc.supplies.forEach(function(s) { demand[s.item] = (demand[s.item] || 0) + s.qty; });
   });
   return demand;
 }
 
 function calcOrder() {
-  const demand = calcDemand();
-  const order = {};
-  Object.entries(demand).forEach(([item, needed]) => {
-    const inv = state.inventory.find(i => i.name === item);
-    const onHand = inv ? inv.qty : 0;
-    const toOrder = Math.max(0, needed - onHand);
-    if(toOrder > 0) order[item] = { needed, onHand, toOrder, supplier: inv ? inv.supplier : '—' };
+  var demand = calcDemand();
+  var order = {};
+  Object.keys(demand).forEach(function(item) {
+    var needed = demand[item];
+    var inv = state.inventory.find(function(i) { return i.name === item; });
+    var onHand = inv ? inv.qty : 0;
+    var toOrder = Math.max(0, needed - onHand);
+    if (toOrder > 0) order[item] = {needed:needed, onHand:onHand, toOrder:toOrder, supplier:inv ? inv.supplier : '-'};
   });
   return order;
 }
 
+// ─── RENDER DASHBOARD ────────────────────────────────────
 function renderDashboard() {
-  const demand = calcDemand();
-  const order = calcOrder();
-  const totalItems = Object.values(demand).reduce((a,b)=>a+b,0);
-  const lowStock = state.inventory.filter(i => i.qty <= i.threshold);
-  const orderCount = Object.keys(order).length;
+  var demand = calcDemand();
+  var order = calcOrder();
+  var lowStock = state.inventory.filter(function(i) { return i.qty <= i.threshold; });
+  var orderCount = Object.keys(order).length;
 
+  document.getElementById('dash-inv-total').textContent = state.inventory.length;
   document.getElementById('dash-appts').textContent = state.appointments.length;
-  document.getElementById('dash-items').textContent = totalItems;
   document.getElementById('dash-alerts').textContent = lowStock.length;
   document.getElementById('dash-order-count').textContent = orderCount;
 
-  // Alerts
-  const al = document.getElementById('dash-alert-list');
-  if(lowStock.length === 0) {
-    al.innerHTML = '<div class="alert alert-success">All items are above threshold</div>';
+  // Banner
+  var banner = document.getElementById('dash-status-banner');
+  var bannerText = document.getElementById('dash-banner-text');
+  if (lowStock.length === 0) {
+    banner.style.display = 'none';
   } else {
-    al.innerHTML = lowStock.map(i => `
-      <div class="alert ${i.qty === 0 ? 'alert-danger' : 'alert-warn'}">
-        <div><strong>${i.name}</strong> — ${i.qty} remaining <span style="color:var(--muted)">(threshold: ${i.threshold})</span></div>
-      </div>`).join('');
+    banner.style.display = 'flex';
+    var names = lowStock.slice(0,3).map(function(i) { return i.name; }).join(', ');
+    bannerText.innerHTML = '<strong style="color:var(--text-primary)">' + lowStock.length + ' item' + (lowStock.length !== 1 ? 's' : '') + ' below reorder point</strong> — ' + names + (lowStock.length > 3 ? ' and more.' : '.');
   }
 
-  // Upcoming appts (first 6)
-  const al2 = document.getElementById('dash-appt-list');
-  const sorted = [...state.appointments].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
-  al2.innerHTML = `<table><thead><tr><th>Date</th><th>Procedure</th><th>Location</th></tr></thead><tbody>
-    ${sorted.map(a=>`<tr><td class="mono">${a.date}</td><td>${a.procedure}</td><td>${a.location}</td></tr>`).join('')}
-  </tbody></table>`;
+  // Today date
+  var todayEl = document.getElementById('dash-today-date');
+  if (todayEl) todayEl.textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-  // Demand table
-  const dt = document.getElementById('dash-demand-table');
-  const rows = Object.entries(demand).map(([item, needed]) => {
-    const inv = state.inventory.find(i => i.name === item);
-    const onHand = inv ? inv.qty : 0;
-    const toOrder = Math.max(0, needed - onHand);
-    const pct = Math.min(100, Math.round((onHand/needed)*100));
-    const barColor = pct < 40 ? 'var(--danger)' : pct < 70 ? 'var(--warning)' : 'var(--success)';
-    const status = toOrder > 0
-      ? `<span class="badge badge-red">Order ${toOrder}</span>`
-      : `<span class="badge badge-green">Covered</span>`;
-    return `<tr>
-      <td>${item}</td>
-      <td class="mono">${needed}</td>
-      <td class="mono">${onHand}</td>
-      <td style="width:120px"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div></td>
-      <td>${status}</td>
-    </tr>`;
-  });
-  dt.innerHTML = `<table><thead><tr><th>Supply Item</th><th>Needed</th><th>On Hand</th><th>Level</th><th>Status</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  // Alert tag + list
+  var alertTag = document.getElementById('dash-alert-count-tag');
+  if (alertTag) alertTag.textContent = lowStock.length + ' new';
+  var alertEl = document.getElementById('dash-alert-list');
+  if (alertEl) {
+    if (lowStock.length === 0) {
+      alertEl.innerHTML = '<div style="padding:14px 20px;font-size:13px;color:var(--text-muted);">All items are above reorder point</div>';
+    } else {
+      alertEl.innerHTML = lowStock.map(function(i) {
+        return '<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 20px;border-bottom:0.5px solid rgba(0,0,0,0.05);">' +
+          '<div style="width:7px;height:7px;border-radius:50%;background:' + (i.qty === 0 ? '#E24B4A' : '#EF9F27') + ';flex-shrink:0;margin-top:4px;"></div>' +
+          '<div><div style="font-size:13px;font-weight:500;color:var(--text-primary)">' + i.name + ' ' + (i.qty === 0 ? 'critically low' : 'running low') + ' — ' + i.qty + ' units remaining.</div>' +
+          '<div style="font-size:12px;color:var(--text-hint);margin-top:2px;">Reorder point: ' + i.threshold + '</div></div></div>';
+      }).join('');
+    }
+  }
+
+  // Appointments panel
+  var apptEl = document.getElementById('dash-appt-list');
+  if (apptEl) {
+    var sorted = state.appointments.slice().sort(function(a,b) { return a.date.localeCompare(b.date); }).slice(0,4);
+    var times = ['9:00','10:30','1:00','3:00'];
+    var ampm  = ['AM','AM','PM','PM'];
+    var procColors = {
+      'New Bonding':'background:#EAF3DE;color:#27500A',
+      'Adjustment':'background:#E6F1FB;color:#0C447C',
+      'Debond':'background:#FAEEDA;color:#633806',
+      'Emergency Visit':'background:#FCEBEB;color:#A32D2D'
+    };
+    apptEl.innerHTML = sorted.map(function(a, idx) {
+      var badgeStyle = procColors[a.procedure] || 'background:var(--bg-surface);color:var(--text-muted)';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:0.5px solid rgba(0,0,0,0.05);">' +
+        '<div style="text-align:center;min-width:42px;flex-shrink:0;"><div style="font-size:13px;font-weight:700;color:var(--text-primary)">' + (times[idx] || '-') + '</div><div style="font-size:10px;color:var(--text-muted)">' + (ampm[idx] || '') + '</div></div>' +
+        '<div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text-primary)">' + a.procedure + '</div><div style="font-size:12px;color:var(--text-muted);margin-top:1px;">' + a.location + ' · ' + a.date + '</div></div>' +
+        '<span style="font-size:12px;font-weight:500;padding:4px 10px;border-radius:7px;white-space:nowrap;flex-shrink:0;' + badgeStyle + '">' + (a.procedure === 'Emergency Visit' ? 'Urgent' : 'Ready') + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  // Inventory critical items table — demand items + any low stock not in demand
+  var demandEl = document.getElementById('dash-demand-table');
+  if (demandEl) {
+    // Build a combined list: all demand items first, then low-stock items not already in demand
+    var demandKeys = Object.keys(demand);
+    var extraLowStock = state.inventory.filter(function(i) {
+      return i.qty <= i.threshold && demandKeys.indexOf(i.name) === -1;
+    });
+
+    var demandRows = demandKeys.map(function(item) {
+      var needed = demand[item];
+      var inv = state.inventory.find(function(i) { return i.name === item; });
+      var onHand = inv ? inv.qty : 0;
+      var toOrder = Math.max(0, needed - onHand);
+      var pct = Math.min(100, Math.round((onHand / needed) * 100));
+      var barColor = pct < 40 ? '#E24B4A' : pct < 70 ? '#EF9F27' : '#63991a';
+      var statusTag = toOrder > 0
+        ? '<span class="tag tag-low">Order ' + toOrder + '</span>'
+        : '<span class="tag tag-ok">Covered</span>';
+      var supplier = inv ? inv.supplier : '-';
+      return '<tr>' +
+        '<td><div style="font-weight:500;color:var(--text-primary)">' + item + '</div><div style="font-size:12px;color:var(--text-hint);margin-top:1px;">' + (inv ? inv.sku : '-') + ' · ' + supplier + '</div></td>' +
+        '<td style="font-weight:600;color:' + (toOrder > 0 ? '#E24B4A' : 'var(--text-secondary)') + '">' + onHand + '</td>' +
+        '<td style="width:90px"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div></td>' +
+        '<td>' + statusTag + '</td>' +
+        '<td style="font-size:12px;color:var(--text-muted)">' + supplier + '</td>' +
+        '</tr>';
+    });
+
+    var extraRows = extraLowStock.map(function(i) {
+      var pct = i.threshold > 0 ? Math.min(100, Math.round((i.qty / i.threshold) * 100)) : 0;
+      var barColor = pct < 40 ? '#E24B4A' : '#EF9F27';
+      var statusTag = i.qty === 0
+        ? '<span class="tag tag-low">Out of Stock</span>'
+        : '<span class="tag tag-warn">Low Stock</span>';
+      return '<tr>' +
+        '<td><div style="font-weight:500;color:var(--text-primary)">' + i.name + '</div><div style="font-size:12px;color:var(--text-hint);margin-top:1px;">' + (i.sku || '-') + ' · ' + (i.supplier || '-') + '</div></td>' +
+        '<td style="font-weight:600;color:#E24B4A">' + i.qty + '</td>' +
+        '<td style="width:90px"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div></td>' +
+        '<td>' + statusTag + '</td>' +
+        '<td style="font-size:12px;color:var(--text-muted)">' + (i.supplier || '-') + '</td>' +
+        '</tr>';
+    });
+
+    demandEl.innerHTML = '<table><thead><tr><th>Item</th><th>Stock</th><th>Level</th><th>Status</th><th>Supplier</th></tr></thead><tbody>' + demandRows.concat(extraRows).join('') + '</tbody></table>';
+  }
+
+  // Pipeline pending
+  var pipelinePending = document.getElementById('pipeline-pending');
+  var pipelineAmt = document.getElementById('pipeline-pending-amt');
+  if (pipelinePending) {
+    if (lowStock.length === 0) {
+      pipelinePending.innerHTML = '<div style="font-size:12px;color:var(--text-hint);padding:4px 0;">No pending orders</div>';
+    } else {
+      pipelinePending.innerHTML = lowStock.slice(0,2).map(function(i, idx) {
+        return '<div style="background:var(--bg-page);border-radius:10px;padding:10px 12px;margin-bottom:8px;">' +
+          '<div style="font-size:12px;font-weight:700;color:var(--text-primary);">ORD-00' + (90 + idx) + '</div>' +
+          '<div style="font-size:13px;color:var(--text-secondary);margin:3px 0;">' + i.name + ' x reorder</div>' +
+          '<div style="font-size:12px;color:var(--text-hint);">' + (i.supplier || '-') + ' · just now</div>' +
+          '</div>';
+      }).join('');
+    }
+    if (pipelineAmt) pipelineAmt.textContent = lowStock.length > 0 ? '$' + Math.floor(lowStock.length * 170) : '$0';
+  }
+
+  // Procedure maps
+  var procEl = document.getElementById('dash-proc-list');
+  if (procEl) {
+    var iconStyles = [
+      {bg:'#E6F1FB',stroke:'#185FA5'},{bg:'#FAEEDA',stroke:'#854F0B'},
+      {bg:'#EAF3DE',stroke:'#3B6D11'},{bg:'#E1F5EE',stroke:'#0F6E56'}
+    ];
+    var apptCounts = {};
+    state.appointments.forEach(function(a) { apptCounts[a.procedure] = (apptCounts[a.procedure] || 0) + 1; });
+    procEl.innerHTML = state.procedures.map(function(p, i) {
+      var st = iconStyles[i % iconStyles.length];
+      var count = apptCounts[p.name] || 0;
+      var hasLow = p.supplies.some(function(s) {
+        var inv = state.inventory.find(function(x) { return x.name === s.item; });
+        return inv && inv.qty <= inv.threshold;
+      });
+      var countDisplay = hasLow
+        ? '<span class="tag tag-warn">Low supply</span>'
+        : '<span style="font-size:13px;font-weight:500;color:var(--text-secondary);">x' + count + ' this week</span>';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:0.5px solid rgba(0,0,0,0.05);cursor:pointer;" onclick="navigate(\'procedures\')">' +
+        '<div style="width:34px;height:34px;border-radius:var(--r-sm);background:' + st.bg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="' + st.stroke + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8h6M5 5h6M5 11h3"/></svg></div>' +
+        '<div style="flex:1"><div style="font-size:14px;font-weight:500;color:var(--text-primary)">' + p.name + '</div><div style="font-size:12px;color:var(--text-muted);margin-top:1px;">' + p.supplies.length + ' supply items</div></div>' +
+        countDisplay + '</div>';
+    }).join('');
+  }
 }
 
+// ─── OTHER RENDER FUNCTIONS ───────────────────────────────
 function renderAppointments() {
-  const sorted = [...state.appointments].sort((a,b)=>a.date.localeCompare(b.date));
-  document.getElementById('appt-table-body').innerHTML = sorted.map(a => `
-    <tr>
-      <td class="mono">${a.date}</td>
-      <td><span class="badge ${a.procedure==='New Bonding'?'badge-blue':a.procedure==='Adjustment'?'badge-green':a.procedure==='Debond'?'badge-yellow':'badge-red'}">${a.procedure}</span></td>
-      <td>${a.location}</td>
-      <td><span class="badge badge-gray">Scheduled</span></td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteAppt(${a.id})">Remove</button></td>
-    </tr>`).join('');
+  var sorted = state.appointments.slice().sort(function(a,b) { return a.date.localeCompare(b.date); });
+  var procColor = {'New Bonding':'tag-blue','Adjustment':'tag-ok','Debond':'tag-warn','Emergency Visit':'tag-low'};
+  document.getElementById('appt-table-body').innerHTML = sorted.map(function(a) {
+    return '<tr>' +
+      '<td class="mono" style="color:var(--text-muted)">' + a.date + '</td>' +
+      '<td><span class="tag ' + (procColor[a.procedure] || 'tag-gray') + '">' + a.procedure + '</span></td>' +
+      '<td style="color:var(--text-secondary)">' + a.location + '</td>' +
+      '<td><span class="tag tag-gray">Scheduled</span></td>' +
+      '<td style="text-align:right"><button class="btn-danger-sm" onclick="deleteAppt(' + a.id + ')">Remove</button></td>' +
+      '</tr>';
+  }).join('');
 }
 
 function renderProcedures() {
-  const el = document.getElementById('proc-list');
-  el.innerHTML = state.procedures.map((p,pi) => {
-    const rows = p.supplies.map(s => {
-      const inv = state.inventory.find(i => i.name === s.item);
-      const supplier = inv && inv.supplier ? inv.supplier : '—';
-      const sku = inv && inv.sku ? inv.sku : '—';
-      return `<tr>
-        <td style="font-weight:500">${s.item}</td>
-        <td class="mono" style="color:var(--muted)">${sku}</td>
-        <td class="mono" style="text-align:center">${s.qty}</td>
-        <td style="color:var(--text-secondary)">${supplier}</td>
-      </tr>`;
+  document.getElementById('proc-list').innerHTML = state.procedures.map(function(p, pi) {
+    var rows = p.supplies.map(function(s) {
+      var inv = state.inventory.find(function(i) { return i.name === s.item; });
+      return '<tr><td style="font-weight:500;color:var(--text-primary)">' + s.item + '</td>' +
+        '<td class="mono" style="color:var(--text-muted)">' + (inv && inv.sku ? inv.sku : '-') + '</td>' +
+        '<td class="mono" style="text-align:center">' + s.qty + '</td>' +
+        '<td style="color:var(--text-secondary)">' + (inv && inv.supplier ? inv.supplier : '-') + '</td></tr>';
     }).join('');
-    return `
-    <div class="map-entry">
-      <div class="map-entry-header">
-        <div style="font-weight:700;font-size:1rem;letter-spacing:-0.02em;">${p.name}</div>
-        <button class="btn btn-danger btn-sm" onclick="deleteProc(${pi})">Remove</button>
-      </div>
-      <table style="table-layout:fixed;width:100%">
-        <colgroup>
-          <col style="width:auto"/>
-          <col style="width:110px"/>
-          <col style="width:130px"/>
-          <col style="width:150px"/>
-        </colgroup>
-        <thead>
-          <tr>
-            <th style="text-align:left">Item Name</th>
-            <th style="text-align:left">SKU</th>
-            <th style="text-align:center">Qty / Procedure</th>
-            <th style="text-align:left">Supplier</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+    return '<div class="map-entry"><div class="map-entry-header"><div style="font-weight:600;font-size:15px;letter-spacing:-0.2px">' + p.name + '</div>' +
+      '<button class="btn-danger-sm" onclick="deleteProc(' + pi + ')">Remove</button></div>' +
+      '<table style="table-layout:fixed;width:100%"><colgroup><col/><col style="width:110px"/><col style="width:130px"/><col style="width:150px"/></colgroup>' +
+      '<thead><tr><th>Item Name</th><th>SKU</th><th style="text-align:center">Qty / Procedure</th><th>Supplier</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
   }).join('');
 }
 
 function renderInventory() {
-  document.getElementById('inv-table-body').innerHTML = state.inventory.map(i => {
-    const outOfStock = i.qty === 0;
-    const low = i.qty <= i.threshold;
-    const statusBadge = outOfStock
-      ? `<span class="badge badge-red">Out of Stock</span>`
-      : low
-      ? `<span class="badge badge-yellow">Low Stock</span>`
-      : `<span class="badge badge-green">In Stock</span>`;
-    return `<tr>
-      <td style="font-weight:500">${i.name}</td>
-      <td class="mono" style="color:var(--muted)">${i.sku || '—'}</td>
-      <td class="mono">${i.qty}</td>
-      <td class="mono">${i.threshold}</td>
-      <td style="color:var(--text-secondary)">${i.supplier || '—'}</td>
-      <td>${statusBadge}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteInv(${i.id})">Remove</button></td>
-    </tr>`;
+  document.getElementById('inv-table-body').innerHTML = state.inventory.map(function(i) {
+    var tag = i.qty === 0 ? '<span class="tag tag-low">Out of Stock</span>' : i.qty <= i.threshold ? '<span class="tag tag-warn">Low Stock</span>' : '<span class="tag tag-ok">In Stock</span>';
+    return '<tr>' +
+      '<td style="font-weight:500;color:var(--text-primary)">' + i.name + '</td>' +
+      '<td class="mono" style="color:var(--text-muted)">' + (i.sku || '-') + '</td>' +
+      '<td class="mono">' + i.qty + '</td>' +
+      '<td class="mono">' + i.threshold + '</td>' +
+      '<td style="color:var(--text-secondary)">' + (i.supplier || '-') + '</td>' +
+      '<td>' + tag + '</td>' +
+      '<td style="text-align:right"><button class="btn-danger-sm" onclick="deleteInv(' + i.id + ')">Remove</button></td>' +
+      '</tr>';
   }).join('');
+}
+
+function renderSuppliers() {
+  document.getElementById('suppliers-table-body').innerHTML = state.suppliers.map(function(s) {
+    return '<tr>' +
+      '<td style="font-weight:500;color:var(--text-primary)">' + s.name + '</td>' +
+      '<td style="color:var(--text-secondary)">' + s.email + '</td>' +
+      '<td class="mono" style="color:var(--text-muted)">' + s.account + '</td>' +
+      '<td><span class="tag ' + (s.status === 'active' ? 'tag-ok' : 'tag-gray') + '">' + (s.status === 'active' ? 'Active' : 'Inactive') + '</span></td>' +
+      '<td style="text-align:right;display:flex;gap:6px;justify-content:flex-end;">' +
+      '<button class="btn-ghost-sm" onclick="showToast(\'Edit coming soon\')">Edit</button>' +
+      '<button class="btn-danger-sm" onclick="deleteSupplier(' + s.id + ')">Remove</button>' +
+      '</td></tr>';
+  }).join('');
+}
+
+function renderProfile() {
+  var tbody = document.getElementById('locations-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = state.locations.map(function(l) {
+    return '<tr>' +
+      '<td style="font-weight:500;color:var(--text-primary)">' + l.name + '</td>' +
+      '<td style="color:var(--text-secondary)">' + l.address + '</td>' +
+      '<td class="mono" style="color:var(--text-muted)">' + l.phone + '</td>' +
+      '<td style="text-align:right"><button class="btn-ghost-sm" onclick="showToast(\'Edit coming soon\')">Edit</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderSettings() {
+  document.getElementById('notification-toggles').innerHTML = state.notifications.map(function(n, i) {
+    return '<div class="toggle-row"><span class="toggle-label">' + n.label + '</span>' +
+      '<button class="toggle" onclick="toggleNotif(' + i + ')" style="background:' + (n.on ? '#010101' : 'rgba(0,0,0,0.15)') + '">' +
+      '<div class="toggle-knob" style="left:' + (n.on ? '20px' : '3px') + '"></div></button></div>';
+  }).join('');
+
+  var pms = state.pms;
+  var syncStr = new Date(pms.lastSync).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+  var sMap = {
+    connected:{label:'Connected',bg:'#EAF3DE',color:'#3B6D11'},
+    error:{label:'Error',bg:'#FCEBEB',color:'#A32D2D'},
+    disconnected:{label:'Disconnected',bg:'var(--bg-surface)',color:'var(--text-muted)'}
+  };
+  var s = sMap[pms.status] || sMap.disconnected;
+  document.getElementById('pms-section').innerHTML =
+    '<div class="pms-status-row">' +
+      '<div style="display:flex;align-items:center;gap:12px;">' +
+        '<div style="width:34px;height:34px;border-radius:var(--r-sm);background:var(--bg-page);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:0.5px solid var(--border-mid);">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>' +
+        '<div><div style="font-weight:600;font-size:14px;">' + pms.system + '</div>' +
+        '<div style="font-size:12px;color:var(--text-muted);font-family:var(--mono)">' + pms.endpoint + '</div></div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span style="display:inline-flex;align-items:center;padding:4px 11px;border-radius:var(--r-pill);background:' + s.bg + ';font-size:12px;font-weight:600;color:' + s.color + ';">' + s.label + '</span>' +
+        '<button class="btn-ghost-sm" onclick="testPmsConnection()">Test</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="form-group"><label>PMS Platform</label>' +
+    '<select id="pms-system-select">' + ['Dolphin Imaging','Carestream Dental','Orthotrac','Eaglesoft','Dentrix','Other'].map(function(o) { return '<option' + (pms.system === o ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div>' +
+    '<div class="form-group"><label>API Endpoint</label><input type="text" id="pms-endpoint" value="' + pms.endpoint + '"/></div>' +
+    '<div class="form-group"><label>API Key</label><div style="display:flex;gap:8px;"><input type="password" id="pms-apikey" value="' + pms.apiKey + '" style="flex:1;font-family:var(--mono);"/><button class="btn-ghost-sm" onclick="toggleApiKey()">Show</button></div></div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">' +
+      '<span style="font-size:12px;color:var(--text-muted);">Last synced: <span class="mono">' + syncStr + '</span></span>' +
+      '<div style="display:flex;gap:8px;"><button class="btn-ghost-sm" onclick="showToast(\'Syncing...\');setTimeout(function(){showToast(\'Sync complete\');},1800)">Sync Now</button>' +
+      '<button class="btn-primary-sm" onclick="savePmsSettings()">Save</button></div>' +
+    '</div>';
+}
+
+function toggleNotif(i) { state.notifications[i].on = !state.notifications[i].on; renderSettings(); }
+
+// ─── ORDER ───────────────────────────────────────────────
+var orderState = {};
+
+function initOrderState() {
+  orderState = {};
+  var order = calcOrder();
+  Object.keys(order).forEach(function(item) {
+    var d = order[item];
+    orderState[item] = {qty:d.toOrder, needed:d.needed, onHand:d.onHand, supplier:d.supplier};
+  });
 }
 
 function showOrderPanel(panel) {
@@ -1251,392 +1017,287 @@ function showOrderPanel(panel) {
   document.getElementById('order-panel-suggested').style.display = panel === 'suggested' ? 'block' : 'none';
 }
 
-// ─── ORDER STATE ─────────────────────────────────────────
-let orderState = {}; // { itemName: qty }
-
-function initOrderState() {
-  const order = calcOrder();
-  orderState = {};
-  Object.entries(order).forEach(([item, d]) => {
-    orderState[item] = { qty: d.toOrder, needed: d.needed, onHand: d.onHand, supplier: d.supplier };
-  });
-}
-
 function adjustOrderQty(item, delta) {
-  if(!orderState[item]) return;
+  if (!orderState[item]) return;
   orderState[item].qty = Math.max(0, orderState[item].qty + delta);
-  document.getElementById('order-qty-' + CSS.escape(item)).textContent = orderState[item].qty;
-}
-
-function addLowStockToOrder(item) {
-  const inv = state.inventory.find(i => i.name === item);
-  if(!inv) return;
-  const shortfall = Math.max(0, inv.threshold - inv.qty);
-  const qty = shortfall > 0 ? shortfall : inv.threshold;
-  if(orderState[item]) {
-    orderState[item].qty += qty;
-    document.getElementById('order-qty-' + CSS.escape(item)).textContent = orderState[item].qty;
-  } else {
-    orderState[item] = { qty, needed: 0, onHand: inv.qty, supplier: inv.supplier || '—' };
-    renderOrderList();
-  }
-  // Update button to show added state
-  const btn = document.getElementById('low-stock-btn-' + CSS.escape(item));
-  if(btn) {
-    btn.textContent = '✓ Added';
-    btn.disabled = true;
-    btn.style.opacity = '0.55';
-  }
-  toast(`${item} added to order`);
-}
-
-function renderOrderList() {
-  const ol = document.getElementById('order-list');
-  const entries = Object.entries(orderState);
-  if(entries.length === 0) {
-    ol.innerHTML = '<div class="alert alert-success">All supplies are covered — no order needed.</div>';
-    return;
-  }
-  ol.innerHTML = entries.map(([item, d]) => `
-    <div class="order-item" style="gap:12px;">
-      <div style="flex:1;min-width:0;">
-        <div class="order-item-name">${item}</div>
-        <div class="order-item-detail">Needed ${d.needed} · On hand ${d.onHand} · Via ${d.supplier}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-        <button onclick="adjustOrderQty('${item.replace(/'/g,"\\'")}', -1)"
-          style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">−</button>
-        <div class="order-qty" id="order-qty-${CSS.escape(item)}" style="min-width:44px;text-align:center;">${d.qty}</div>
-        <button onclick="adjustOrderQty('${item.replace(/'/g,"\\'")}', 1)"
-          style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">+</button>
-        <button onclick="removeOrderItem('${item.replace(/'/g,"\\'")}' )"
-          class="btn btn-danger btn-sm" style="margin-left:4px;">Remove</button>
-      </div>
-    </div>`).join('');
+  var el = document.getElementById('order-qty-' + CSS.escape(item));
+  if (el) el.textContent = orderState[item].qty;
 }
 
 function removeOrderItem(item) {
   delete orderState[item];
   renderOrderList();
-  // If item is low stock, restore its Add to Order button in the alerts section
   renderLowStockAlerts();
-  toast(`${item} removed from order`);
+  showToast(item + ' removed');
 }
 
-function handleOrderItemSelect() {
-  const sel = document.getElementById('order-item-select');
-  const customGroup = document.getElementById('order-item-custom-group');
-  const supplierInput = document.getElementById('order-item-supplier');
-  if(sel.value === '__custom__') {
-    customGroup.style.display = 'block';
-    supplierInput.value = '';
+function addLowStockToOrder(item) {
+  var inv = state.inventory.find(function(i) { return i.name === item; });
+  if (!inv) return;
+  var qty = Math.max(inv.threshold - inv.qty, inv.threshold);
+  if (orderState[item]) {
+    orderState[item].qty += qty;
+    var el = document.getElementById('order-qty-' + CSS.escape(item));
+    if (el) el.textContent = orderState[item].qty;
   } else {
-    customGroup.style.display = 'none';
-    document.getElementById('order-item-custom-name').value = '';
-    if(sel.value) {
-      const inv = state.inventory.find(i => i.name === sel.value);
-      supplierInput.value = inv && inv.supplier ? inv.supplier : '';
-    } else {
-      supplierInput.value = '';
-    }
+    orderState[item] = {qty:qty, needed:0, onHand:inv.qty, supplier:inv.supplier || '-'};
+    renderOrderList();
   }
+  var btn = document.getElementById('low-stock-btn-' + CSS.escape(item));
+  if (btn) { btn.textContent = 'Added'; btn.disabled = true; btn.style.opacity = '0.5'; }
+  showToast(item + ' added to order');
 }
 
-function addOrderItem() {
-  const sel = document.getElementById('order-item-select');
-  let name = sel.value === '__custom__'
-    ? document.getElementById('order-item-custom-name').value.trim()
-    : sel.value;
-  if(!name) { toast('Please select or enter an item'); return; }
-  const qty = parseInt(document.getElementById('order-item-qty').value) || 1;
-  const supplier = document.getElementById('order-item-supplier').value.trim() || '—';
-  const inv = state.inventory.find(i => i.name === name);
-  if(orderState[name]) {
-    orderState[name].qty += qty;
-  } else {
-    orderState[name] = { qty, needed: 0, onHand: inv ? inv.qty : 0, supplier };
+function renderOrderList() {
+  var ol = document.getElementById('order-list');
+  var entries = Object.keys(orderState);
+  if (entries.length === 0) {
+    ol.innerHTML = '<div style="padding:12px 0;font-size:13px;color:var(--text-muted);">All supplies are covered — no order needed.</div>';
+    return;
   }
-  closeModal('order-item-modal');
-  renderOrderList();
-  renderLowStockAlerts();
-  toast(`${name} added to order`);
+  ol.innerHTML = entries.map(function(item) {
+    var d = orderState[item];
+    var escapedItem = item.replace(/'/g, "\\'");
+    return '<div class="order-item">' +
+      '<div style="flex:1;min-width:0;"><div class="order-item-name">' + item + '</div>' +
+      '<div class="order-item-detail">Needed ' + d.needed + ' · On hand ' + d.onHand + ' · Via ' + d.supplier + '</div></div>' +
+      '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">' +
+      '<button onclick="adjustOrderQty(\'' + escapedItem + '\', -1)" style="width:26px;height:26px;border-radius:var(--r-sm);border:0.5px solid var(--border-mid);background:var(--bg-card);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">-</button>' +
+      '<div class="order-qty" id="order-qty-' + CSS.escape(item) + '">' + d.qty + '</div>' +
+      '<button onclick="adjustOrderQty(\'' + escapedItem + '\', 1)" style="width:26px;height:26px;border-radius:var(--r-sm);border:0.5px solid var(--border-mid);background:var(--bg-card);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">+</button>' +
+      '<button onclick="removeOrderItem(\'' + escapedItem + '\')" class="btn-danger-sm" style="margin-left:4px;">Remove</button>' +
+      '</div></div>';
+  }).join('');
 }
 
 function renderLowStockAlerts() {
-  const lowStock = state.inventory.filter(i => i.qty <= i.threshold);
-  const el = document.getElementById('order-low-stock');
-  if(!el) return;
-  if(lowStock.length === 0) {
-    el.style.display = 'none';
-    return;
-  }
+  var lowStock = state.inventory.filter(function(i) { return i.qty <= i.threshold; });
+  var el = document.getElementById('order-low-stock');
+  if (!el) return;
+  if (lowStock.length === 0) { el.style.display = 'none'; return; }
   el.style.display = 'block';
-  el.innerHTML = `
-    <div class="card-title-row" style="margin-bottom:12px;">
-      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <div class="card-title" style="color:var(--warning)">Low Stock Alerts</div>
-    </div>
-    ${lowStock.map(i => {
-      const inOrder = !!orderState[i.name];
-      return `
-      <div class="order-item" style="background:var(--warning-bg);border-color:var(--warning-border);margin-bottom:8px;">
-        <div style="flex:1;min-width:0;">
-          <div class="order-item-name">${i.name}</div>
-          <div class="order-item-detail" style="color:var(--warning);">${i.qty} in stock · threshold ${i.threshold} · ${i.supplier || '—'}</div>
-        </div>
-        <button id="low-stock-btn-${CSS.escape(i.name)}"
-          class="btn btn-sm"
-          style="flex-shrink:0;background:var(--warning);color:#fff;border:none;${inOrder ? 'opacity:0.55;' : ''}"
-          onclick="addLowStockToOrder('${i.name.replace(/'/g,"\\'")}')"
-          ${inOrder ? 'disabled' : ''}>
-          ${inOrder ? '✓ Added' : 'Add to Order'}
-        </button>
-      </div>`;
-    }).join('')}`;
+  el.innerHTML = '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;">At Reorder Point</div>' +
+    lowStock.map(function(i) {
+      var inOrder = !!orderState[i.name];
+      var escapedName = i.name.replace(/'/g, "\\'");
+      return '<div class="order-item" style="background:#FAEEDA;border-color:rgba(239,159,39,0.3);">' +
+        '<div style="flex:1;min-width:0;"><div class="order-item-name">' + i.name + '</div>' +
+        '<div class="order-item-detail" style="color:#633806">' + i.qty + ' in stock · reorder point ' + i.threshold + ' · ' + (i.supplier || '-') + '</div></div>' +
+        '<button id="low-stock-btn-' + CSS.escape(i.name) + '" class="btn-primary-sm"' + (inOrder ? ' style="opacity:0.5;" disabled' : '') + ' onclick="addLowStockToOrder(\'' + escapedName + '\')">' + (inOrder ? 'Added' : 'Add to Order') + '</button>' +
+        '</div>';
+    }).join('');
 }
 
 function renderOrder() {
   showOrderPanel('demand');
   initOrderState();
-
-  // Demand calc
-  const dc = document.getElementById('demand-calc');
-  const procCounts = {};
-  state.appointments.forEach(a => procCounts[a.procedure] = (procCounts[a.procedure]||0)+1);
-  const rows = Object.entries(procCounts).map(([proc,cnt]) => {
-    const p = state.procedures.find(x=>x.name===proc);
-    if(!p) return '';
-    return p.supplies.map(s => `
-      <div class="order-item">
-        <div>
-          <div class="order-item-name">${s.item}</div>
-          <div class="order-item-detail">${cnt} × ${proc} × ${s.qty} each</div>
-        </div>
-        <div class="order-qty">${cnt * s.qty}</div>
-      </div>`).join('');
+  var procCounts = {};
+  state.appointments.forEach(function(a) { procCounts[a.procedure] = (procCounts[a.procedure] || 0) + 1; });
+  var rows = Object.keys(procCounts).map(function(proc) {
+    var cnt = procCounts[proc];
+    var p = state.procedures.find(function(x) { return x.name === proc; });
+    if (!p) return '';
+    return p.supplies.map(function(s) {
+      return '<div class="order-item"><div><div class="order-item-name">' + s.item + '</div>' +
+        '<div class="order-item-detail">' + cnt + ' x ' + proc + ' x ' + s.qty + ' each</div></div>' +
+        '<div class="order-qty">' + (cnt * s.qty) + '</div></div>';
+    }).join('');
   }).join('');
-  dc.innerHTML = rows || '<div class="text-muted">No demand calculated.</div>';
-
-  // Suggested order list with adjustable quantities
+  document.getElementById('demand-calc').innerHTML = rows || '<div style="font-size:13px;color:var(--text-muted)">No demand calculated.</div>';
   renderOrderList();
-
-  // Low stock alerts
   renderLowStockAlerts();
 }
 
 // ─── MODALS ──────────────────────────────────────────────
 function openModal(id) {
-  if(id === 'proc-modal') {
-    // Reset fields
+  if (id === 'proc-modal') {
     document.getElementById('proc-supply-rows').innerHTML = '';
     document.getElementById('proc-new-name').value = '';
     document.getElementById('proc-new-name-group').style.display = 'none';
-    // Populate dropdown from current state.procedures + New Procedure option
-    const sel = document.getElementById('proc-name');
+    var sel = document.getElementById('proc-name');
     sel.innerHTML = '<option value="">Select procedure...</option>';
-    state.procedures.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.name;
-      opt.textContent = p.name;
-      sel.appendChild(opt);
-    });
-    const newOpt = document.createElement('option');
-    newOpt.value = '__new__';
-    newOpt.textContent = '+ New Procedure';
-    sel.appendChild(newOpt);
+    state.procedures.forEach(function(p) { var o = document.createElement('option'); o.value = p.name; o.textContent = p.name; sel.appendChild(o); });
+    var no = document.createElement('option'); no.value = '__new__'; no.textContent = '+ New Procedure'; sel.appendChild(no);
     sel.value = '';
   }
-  if(id === 'order-item-modal') {
-    // Reset fields
+  if (id === 'order-item-modal') {
     document.getElementById('order-item-qty').value = 1;
     document.getElementById('order-item-supplier').value = '';
     document.getElementById('order-item-custom-name').value = '';
     document.getElementById('order-item-custom-group').style.display = 'none';
-    // Populate inventory dropdown + custom option
-    const sel = document.getElementById('order-item-select');
-    sel.innerHTML = '<option value="">Select from inventory...</option>';
-    state.inventory.forEach(i => {
-      const opt = document.createElement('option');
-      opt.value = i.name;
-      opt.textContent = i.name + (i.sku ? ` (${i.sku})` : '');
-      sel.appendChild(opt);
-    });
-    const customOpt = document.createElement('option');
-    customOpt.value = '__custom__';
-    customOpt.textContent = '+ Custom Item';
-    sel.appendChild(customOpt);
-    sel.value = '';
+    var sel2 = document.getElementById('order-item-select');
+    sel2.innerHTML = '<option value="">Select from inventory...</option>';
+    state.inventory.forEach(function(i) { var o = document.createElement('option'); o.value = i.name; o.textContent = i.name + (i.sku ? ' (' + i.sku + ')' : ''); sel2.appendChild(o); });
+    var co = document.createElement('option'); co.value = '__custom__'; co.textContent = '+ Custom Item'; sel2.appendChild(co);
+    sel2.value = '';
   }
   document.getElementById(id).classList.add('open');
 }
 
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(function(m) {
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('open'); });
+});
+
 function handleProcNameChange() {
-  const sel = document.getElementById('proc-name');
-  const newGroup = document.getElementById('proc-new-name-group');
-  newGroup.style.display = sel.value === '__new__' ? 'block' : 'none';
-  if(sel.value !== '__new__') {
-    document.getElementById('proc-new-name').value = '';
-  }
+  var sel = document.getElementById('proc-name');
+  document.getElementById('proc-new-name-group').style.display = sel.value === '__new__' ? 'block' : 'none';
+  if (sel.value !== '__new__') document.getElementById('proc-new-name').value = '';
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
-});
+function handleOrderItemSelect() {
+  var sel = document.getElementById('order-item-select');
+  document.getElementById('order-item-custom-group').style.display = sel.value === '__custom__' ? 'block' : 'none';
+  if (sel.value && sel.value !== '__custom__') {
+    var inv = state.inventory.find(function(i) { return i.name === sel.value; });
+    document.getElementById('order-item-supplier').value = inv && inv.supplier ? inv.supplier : '';
+  } else if (sel.value !== '__custom__') {
+    document.getElementById('order-item-supplier').value = '';
+  }
+}
 
 // ─── ACTIONS ─────────────────────────────────────────────
 function addAppointment() {
-  const date = document.getElementById('appt-date').value;
-  const proc = document.getElementById('appt-proc').value;
-  const loc = document.getElementById('appt-loc').value || 'Main Office';
-  if(!date || !proc) { toast('Please fill all fields'); return; }
-  state.appointments.push({ id: state.nextApptId++, date, procedure: proc, location: loc });
-  closeModal('appt-modal');
-  renderAppointments();
-  toast('Appointment added');
+  var date = document.getElementById('appt-date').value;
+  var proc = document.getElementById('appt-proc').value;
+  var loc  = document.getElementById('appt-loc').value || 'Main Office';
+  if (!date || !proc) { showToast('Please fill all fields'); return; }
+  state.appointments.push({id:state.nextApptId++, date:date, procedure:proc, location:loc});
+  closeModal('appt-modal'); renderAppointments(); showToast('Appointment added');
 }
-
-function deleteAppt(id) {
-  state.appointments = state.appointments.filter(a => a.id !== id);
-  renderAppointments();
-  toast('Appointment removed');
-}
+function deleteAppt(id) { state.appointments = state.appointments.filter(function(a) { return a.id !== id; }); renderAppointments(); showToast('Appointment removed'); }
 
 function addInventoryItem() {
-  const name = document.getElementById('inv-name').value.trim();
-  const sku = document.getElementById('inv-sku').value.trim();
-  const qty = parseInt(document.getElementById('inv-qty').value) || 0;
-  const threshold = parseInt(document.getElementById('inv-thresh').value) || 0;
-  const supplier = document.getElementById('inv-supplier').value.trim();
-  if(!name) { toast('Item name required'); return; }
-  state.inventory.push({ id: state.nextInvId++, name, sku, qty, threshold, supplier });
-  closeModal('inv-modal');
-  renderInventory();
-  toast('Item added to inventory');
+  var name = document.getElementById('inv-name').value.trim();
+  if (!name) { showToast('Item name required'); return; }
+  state.inventory.push({id:state.nextInvId++, name:name, sku:document.getElementById('inv-sku').value.trim(), qty:parseInt(document.getElementById('inv-qty').value)||0, threshold:parseInt(document.getElementById('inv-thresh').value)||0, supplier:document.getElementById('inv-supplier').value.trim()});
+  closeModal('inv-modal'); renderInventory(); showToast('Item added');
+}
+function deleteInv(id) { state.inventory = state.inventory.filter(function(i) { return i.id !== id; }); renderInventory(); showToast('Item removed'); }
+
+function addSupplier() {
+  var name = document.getElementById('sup-name').value.trim();
+  if (!name) { showToast('Supplier name required'); return; }
+  state.suppliers.push({id:state.nextSupplierId++, name:name, email:document.getElementById('sup-email').value.trim(), account:document.getElementById('sup-account').value.trim(), status:document.getElementById('sup-status').value});
+  closeModal('supplier-modal'); renderSuppliers(); showToast('Supplier added');
+}
+function deleteSupplier(id) { state.suppliers = state.suppliers.filter(function(s) { return s.id !== id; }); renderSuppliers(); showToast('Supplier removed'); }
+
+function addLocation() {
+  var name = document.getElementById('loc-name').value.trim();
+  var address = document.getElementById('loc-address').value.trim();
+  if (!name || !address) { showToast('Name and address required'); return; }
+  state.locations.push({id:state.nextLocationId++, name:name, address:address, phone:document.getElementById('loc-phone').value.trim()});
+  closeModal('location-modal');
+  document.getElementById('loc-name').value = '';
+  document.getElementById('loc-address').value = '';
+  document.getElementById('loc-phone').value = '';
+  renderProfile(); showToast('Location added');
 }
 
-function deleteInv(id) {
-  state.inventory = state.inventory.filter(i => i.id !== id);
-  renderInventory();
-  toast('Item removed');
-}
-
-let supplyRows = [];
-function openProcModal() {
-  supplyRows = [];
-  document.getElementById('proc-supply-rows').innerHTML = '';
-  openModal('proc-modal');
-}
-
+var supplyRows = [];
 function addSupplyRow() {
-  const rowId = Date.now();
-  supplyRows.push(rowId);
-  const invOptions = state.inventory.map(i=>`<option>${i.name}</option>`).join('');
-  const row = document.createElement('div');
-  row.className = 'map-item-row mb-3';
-  row.id = 'supply-row-' + rowId;
-  row.innerHTML = `
-    <select class="supply-item-sel">${invOptions}</select>
-    <input type="number" class="supply-qty-inp" min="1" value="1" style="text-align:center"/>
-    <button class="btn btn-danger btn-sm" onclick="removeRow(${rowId})" style="padding:5px 10px">✕</button>`;
+  var rowId = Date.now(); supplyRows.push(rowId);
+  var row = document.createElement('div'); row.className = 'map-item-row'; row.style.marginBottom = '8px'; row.id = 'supply-row-' + rowId;
+  row.innerHTML = '<select class="supply-item-sel">' + state.inventory.map(function(i) { return '<option>' + i.name + '</option>'; }).join('') + '</select>' +
+    '<input type="number" class="supply-qty-inp" min="1" value="1" style="text-align:center"/>' +
+    '<button class="btn-danger-sm" onclick="removeRow(' + rowId + ')" style="padding:4px 8px;border-radius:var(--r-sm);">X</button>';
   document.getElementById('proc-supply-rows').appendChild(row);
 }
-
-function removeRow(id) {
-  const el = document.getElementById('supply-row-' + id);
-  if(el) el.remove();
-  supplyRows = supplyRows.filter(r => r !== id);
-}
+function removeRow(id) { var el = document.getElementById('supply-row-' + id); if (el) el.remove(); supplyRows = supplyRows.filter(function(r) { return r !== id; }); }
 
 function saveProcMapping() {
-  const sel = document.getElementById('proc-name');
-  let name = sel.value;
-  if(name === '__new__') {
-    name = document.getElementById('proc-new-name').value.trim();
-    if(!name) { toast('Please enter a procedure name'); return; }
-  }
-  if(!name) { toast('Select a procedure'); return; }
-  const supplies = [];
-  document.querySelectorAll('.map-item-row').forEach(row => {
-    const item = row.querySelector('.supply-item-sel').value;
-    const qty = parseInt(row.querySelector('.supply-qty-inp').value) || 1;
-    supplies.push({ item, qty });
-  });
-  if(supplies.length === 0) { toast('Add at least one supply item'); return; }
-  const existing = state.procedures.findIndex(p => p.name === name);
-  if(existing >= 0) state.procedures[existing] = { name, supplies };
-  else state.procedures.push({ name, supplies });
-  closeModal('proc-modal');
-  renderProcedures();
-  toast('Procedure mapping saved');
+  var sel = document.getElementById('proc-name');
+  var name = sel.value === '__new__' ? document.getElementById('proc-new-name').value.trim() : sel.value;
+  if (!name) { showToast(sel.value === '__new__' ? 'Enter a procedure name' : 'Select a procedure'); return; }
+  var supplies = [];
+  document.querySelectorAll('.map-item-row').forEach(function(row) { supplies.push({item:row.querySelector('.supply-item-sel').value, qty:parseInt(row.querySelector('.supply-qty-inp').value)||1}); });
+  if (supplies.length === 0) { showToast('Add at least one supply item'); return; }
+  var existing = state.procedures.findIndex(function(p) { return p.name === name; });
+  if (existing >= 0) state.procedures[existing] = {name:name, supplies:supplies};
+  else state.procedures.push({name:name, supplies:supplies});
+  closeModal('proc-modal'); renderProcedures(); showToast('Mapping saved');
+}
+function deleteProc(idx) { state.procedures.splice(idx, 1); renderProcedures(); showToast('Mapping removed'); }
+
+function addOrderItem() {
+  var sel = document.getElementById('order-item-select');
+  var name = sel.value === '__custom__' ? document.getElementById('order-item-custom-name').value.trim() : sel.value;
+  if (!name) { showToast('Select or enter an item'); return; }
+  var qty = parseInt(document.getElementById('order-item-qty').value) || 1;
+  var supplier = document.getElementById('order-item-supplier').value.trim() || '-';
+  var inv = state.inventory.find(function(i) { return i.name === name; });
+  if (orderState[name]) orderState[name].qty += qty;
+  else orderState[name] = {qty:qty, needed:0, onHand:inv ? inv.qty : 0, supplier:supplier};
+  closeModal('order-item-modal'); renderOrderList(); renderLowStockAlerts(); showToast(name + ' added');
 }
 
-function deleteProc(idx) {
-  state.procedures.splice(idx, 1);
-  renderProcedures();
-  toast('Mapping removed');
-}
-
-// ─── EXPORT ──────────────────────────────────────────────
 function exportCSV() {
-  const lines = ['Item,Quantity Needed,On Hand,To Order,Supplier'];
-  Object.entries(orderState).forEach(([item, d]) => {
-    lines.push(`"${item}",${d.needed},${d.onHand},${d.qty},"${d.supplier}"`);
-  });
-  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'supply-order.csv'; a.click();
-  toast('CSV exported!');
+  var lines = ['Item,Quantity Needed,On Hand,To Order,Supplier'];
+  Object.keys(orderState).forEach(function(item) { var d = orderState[item]; lines.push('"' + item + '",' + d.needed + ',' + d.onHand + ',' + d.qty + ',"' + d.supplier + '"'); });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], {type:'text/csv'})); a.download = 'supply-order.csv'; a.click();
+  showToast('CSV exported!');
+}
+function copyOrder() {
+  var text = Object.keys(orderState).map(function(item) { return item + ': ' + orderState[item].qty + ' units'; }).join('\n');
+  navigator.clipboard.writeText(text).then(function() { showToast('Copied!'); });
 }
 
-function copyOrder() {
-  const text = Object.entries(orderState).map(([item, d]) => `${item}: ${d.qty} units`).join('\n');
-  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!'));
+// ─── PMS ─────────────────────────────────────────────────
+function testPmsConnection() {
+  showToast('Testing connection...');
+  setTimeout(function() { state.pms.status = 'connected'; state.pms.lastSync = new Date().toISOString(); renderSettings(); showToast('Connection successful!'); }, 1600);
+}
+function savePmsSettings() {
+  var ep = document.getElementById('pms-endpoint'); var key = document.getElementById('pms-apikey');
+  if (ep) state.pms.endpoint = ep.value.trim(); if (key) state.pms.apiKey = key.value.trim();
+  showToast('PMS settings saved');
+}
+function toggleApiKey() {
+  var inp = document.getElementById('pms-apikey'); if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  var btn = inp.nextElementSibling; if (btn) btn.textContent = inp.type === 'password' ? 'Show' : 'Hide';
 }
 
 // ─── TOAST ───────────────────────────────────────────────
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 2500);
+function showToast(msg) {
+  var t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._timer); t._timer = setTimeout(function() { t.style.display = 'none'; }, 2500);
 }
 
-// ─── MOBILE NAV ──────────────────────────────────────────
-function toggleMobileNav() {
-  document.getElementById('app-sidebar').classList.toggle('open');
-  document.getElementById('mobile-overlay').classList.toggle('open');
-}
-function closeMobileNav() {
-  document.getElementById('app-sidebar').classList.remove('open');
-  document.getElementById('mobile-overlay').classList.remove('open');
-}
+// ─── MOBILE ──────────────────────────────────────────────
+function toggleMobileNav() { document.getElementById('app-sidebar').classList.toggle('open'); document.getElementById('mobile-overlay').classList.toggle('open'); }
+function closeMobileNav() { document.getElementById('app-sidebar').classList.remove('open'); document.getElementById('mobile-overlay').classList.remove('open'); }
 
 // ─── LOGIN ───────────────────────────────────────────────
 function doLogin() {
   document.getElementById('login-page').style.display = 'none';
-  document.getElementById('app-shell').style.display = 'flex';
-  // Show mobile header on small screens
-  if(window.innerWidth <= 768) {
-    document.getElementById('mobile-header').style.display = 'flex';
-  }
+  document.getElementById('app-shell').style.display = 'block';
+  if (window.innerWidth <= 768) document.getElementById('mobile-header').style.display = 'flex';
   renderDashboard();
 }
 
-// ─── INIT ────────────────────────────────────────────────
-// App shell hidden until login
-document.getElementById('app-shell').style.display = 'none';
-
-// Handle resize
-window.addEventListener('resize', () => {
-  const mh = document.getElementById('mobile-header');
-  if(!mh) return;
-  const appVisible = document.getElementById('app-shell').style.display !== 'none';
-  if(appVisible) {
-    mh.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
-    // Close drawer if resizing to tablet/desktop
-    if(window.innerWidth > 768) closeMobileNav();
+window.addEventListener('resize', function() {
+  if (document.getElementById('app-shell').style.display !== 'none') {
+    document.getElementById('mobile-header').style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+    if (window.innerWidth > 768) closeMobileNav();
   }
+});
+
+// Nav pill click handlers
+document.querySelectorAll('.nav-pill[data-page]').forEach(function(pill) {
+  pill.addEventListener('click', function() { navigate(pill.dataset.page); });
+});
+
+// Pill tab switching
+document.querySelectorAll('.pill-tabs').forEach(function(group) {
+  group.querySelectorAll('.pill-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      group.querySelectorAll('.pill-tab').forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+    });
+  });
 });
 </script>
 </body>
